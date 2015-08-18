@@ -303,7 +303,7 @@ public abstract class FileOutputFormat<IT> implements OutputFormat<IT>, Initiali
 			this.fileCreated = false;
 			
 			try {
-				FileSystem.get(this.actualFilePath.toUri()).delete(actualFilePath, false);
+				FileSystem.get(this.actualFilePath.getUri()).delete(actualFilePath, false);
 			} catch (FileNotFoundException e) {
 				// ignore, may not be visible yet or may be already removed
 			} catch (Throwable t) {

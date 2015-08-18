@@ -136,7 +136,7 @@ public class PythonPlanBinder extends PlanBinder<PythonOperationInfo> {
 		//Flink python package
 		String tempFilePath = FLINK_PYTHON_FILE_PATH;
 		clearPath(tempFilePath);
-		FileCache.copy(new Path(FULL_PATH), new Path(tempFilePath), false);
+		FileCache.copy(Path.createPath(FULL_PATH), Path.createPath(tempFilePath), false);
 
 		//plan file		
 		copyFile(filePaths[0], FLINK_PYTHON_PLAN_NAME);
@@ -149,8 +149,8 @@ public class PythonPlanBinder extends PlanBinder<PythonOperationInfo> {
 
 	private static void clearPath(String path) throws IOException, URISyntaxException {
 		FileSystem fs = FileSystem.get(new URI(path));
-		if (fs.exists(new Path(path))) {
-			fs.delete(new Path(path), true);
+		if (fs.exists(Path.createPath(path))) {
+			fs.delete(Path.createPath(path), true);
 		}
 	}
 
@@ -161,13 +161,13 @@ public class PythonPlanBinder extends PlanBinder<PythonOperationInfo> {
 		String identifier = name == null ? path.substring(path.lastIndexOf("/")) : name;
 		String tmpFilePath = FLINK_PYTHON_FILE_PATH + "/" + identifier;
 		clearPath(tmpFilePath);
-		Path p = new Path(path);
-		FileCache.copy(p.makeQualified(FileSystem.get(p.toUri())), new Path(tmpFilePath), true);
+		Path p = Path.createPath(path);
+		FileCache.copy(p.makeQualified(FileSystem.get(p.toUri())), Path.createPath(tmpFilePath), true);
 	}
 
 	private static void distributeFiles(ExecutionEnvironment env) throws IOException, URISyntaxException {
 		clearPath(FLINK_HDFS_PATH);
-		FileCache.copy(new Path(FLINK_PYTHON_FILE_PATH), new Path(FLINK_HDFS_PATH), true);
+		FileCache.copy(Path.createPath(FLINK_PYTHON_FILE_PATH), Path.createPath(FLINK_HDFS_PATH), true);
 		env.registerCachedFile(FLINK_HDFS_PATH, FLINK_PYTHON_DC_ID);
 		clearPath(FLINK_PYTHON_FILE_PATH);
 	}
@@ -216,12 +216,12 @@ public class PythonPlanBinder extends PlanBinder<PythonOperationInfo> {
 		try { //prevent throwing exception so that previous exceptions aren't hidden.
 			if (!DEBUG) {
 				FileSystem hdfs = FileSystem.get(new URI(FLINK_HDFS_PATH));
-				hdfs.delete(new Path(FLINK_HDFS_PATH), true);
+				hdfs.delete(Path.createPath(FLINK_HDFS_PATH), true);
 			}
 
 			FileSystem local = FileSystem.getLocalFileSystem();
-			local.delete(new Path(FLINK_PYTHON_FILE_PATH), true);
-			local.delete(new Path(FLINK_TMP_DATA_DIR), true);
+			local.delete(Path.createPath(FLINK_PYTHON_FILE_PATH), true);
+			local.delete(Path.createPath(FLINK_TMP_DATA_DIR), true);
 			receiver.close();
 		} catch (NullPointerException npe) {
 		} catch (IOException ioe) {

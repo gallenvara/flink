@@ -74,7 +74,7 @@ public class CsvReader {
 	}
 	
 	public CsvReader(String filePath, ExecutionEnvironment executionContext) {
-		this(new Path(Preconditions.checkNotNull(filePath, "The file path may not be null.")), executionContext);
+		this(Path.createPath(Preconditions.checkNotNull(filePath, "The file path may not be null.")), executionContext);
 	}
 	
 	public Path getFilePath() {

@@ -346,7 +346,7 @@ public abstract class ExecutionEnvironment {
 	public DataSource<String> readTextFile(String filePath) {
 		Preconditions.checkNotNull(filePath, "The file path may not be null.");
 		
-		return new DataSource<String>(this, new TextInputFormat(new Path(filePath)), BasicTypeInfo.STRING_TYPE_INFO, Utils.getCallLocationName());
+		return new DataSource<String>(this, new TextInputFormat(Path.createPath(filePath)), BasicTypeInfo.STRING_TYPE_INFO, Utils.getCallLocationName());
 	}
 	
 	/**
@@ -360,7 +360,7 @@ public abstract class ExecutionEnvironment {
 	public DataSource<String> readTextFile(String filePath, String charsetName) {
 		Preconditions.checkNotNull(filePath, "The file path may not be null.");
 
-		TextInputFormat format = new TextInputFormat(new Path(filePath));
+		TextInputFormat format = new TextInputFormat(Path.createPath(filePath));
 		format.setCharsetName(charsetName);
 		return new DataSource<String>(this, format, BasicTypeInfo.STRING_TYPE_INFO, Utils.getCallLocationName());
 	}
@@ -381,7 +381,7 @@ public abstract class ExecutionEnvironment {
 	public DataSource<StringValue> readTextFileWithValue(String filePath) {
 		Preconditions.checkNotNull(filePath, "The file path may not be null.");
 		
-		return new DataSource<StringValue>(this, new TextValueInputFormat(new Path(filePath)), new ValueTypeInfo<StringValue>(StringValue.class), Utils.getCallLocationName());
+		return new DataSource<StringValue>(this, new TextValueInputFormat(Path.createPath(filePath)), new ValueTypeInfo<StringValue>(StringValue.class), Utils.getCallLocationName());
 	}
 	
 	/**
@@ -401,7 +401,7 @@ public abstract class ExecutionEnvironment {
 	public DataSource<StringValue> readTextFileWithValue(String filePath, String charsetName, boolean skipInvalidLines) {
 		Preconditions.checkNotNull(filePath, "The file path may not be null.");
 		
-		TextValueInputFormat format = new TextValueInputFormat(new Path(filePath));
+		TextValueInputFormat format = new TextValueInputFormat(Path.createPath(filePath));
 		format.setCharsetName(charsetName);
 		format.setSkipInvalidLines(skipInvalidLines);
 		return new DataSource<StringValue>(this, format, new ValueTypeInfo<StringValue>(StringValue.class), Utils.getCallLocationName());
@@ -421,7 +421,7 @@ public abstract class ExecutionEnvironment {
 	public <X> DataSource<X> readFileOfPrimitives(String filePath, Class<X> typeClass) {
 		Preconditions.checkNotNull(filePath, "The file path may not be null.");
 
-		return new DataSource<X>(this, new PrimitiveInputFormat<X>(new Path(filePath), typeClass), TypeExtractor.getForClass(typeClass), Utils.getCallLocationName());
+		return new DataSource<X>(this, new PrimitiveInputFormat<X>(Path.createPath(filePath), typeClass), TypeExtractor.getForClass(typeClass), Utils.getCallLocationName());
 	}
 
 	/**
@@ -437,7 +437,7 @@ public abstract class ExecutionEnvironment {
 	public <X> DataSource<X> readFileOfPrimitives(String filePath, String delimiter, Class<X> typeClass) {
 		Preconditions.checkNotNull(filePath, "The file path may not be null.");
 
-		return new DataSource<X>(this, new PrimitiveInputFormat<X>(new Path(filePath), delimiter, typeClass), TypeExtractor.getForClass(typeClass), Utils.getCallLocationName());
+		return new DataSource<X>(this, new PrimitiveInputFormat<X>(Path.createPath(filePath), delimiter, typeClass), TypeExtractor.getForClass(typeClass), Utils.getCallLocationName());
 	}
 
 	// ----------------------------------- CSV Input Format ---------------------------------------
@@ -464,7 +464,7 @@ public abstract class ExecutionEnvironment {
 			throw new IllegalArgumentException("The file path must not be null.");
 		}
 		
-		inputFormat.setFilePath(new Path(filePath));
+		inputFormat.setFilePath(Path.createPath(filePath));
 		try {
 			return createInput(inputFormat, TypeExtractor.getInputFormatTypes(inputFormat));
 		}

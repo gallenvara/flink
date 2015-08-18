@@ -87,15 +87,6 @@ public class Path implements IOReadableWritable, Serializable {
 	public Path() {}
 
 	/**
-	 * Factory method to construct a path
-	 * @param pathString
-	 *        string path
-	 */
-	public static Path createPath(String pathString) {
-		return new Path(pathString);
-	}
-
-	/**
 	 * Resolve a child path against a parent path.
 	 * 
 	 * @param parent
@@ -104,7 +95,7 @@ public class Path implements IOReadableWritable, Serializable {
 	 *        the child path
 	 */
 	public Path(String parent, String child) {
-		this(createPath(parent), createPath(child));
+		this(new Path(parent), new Path(child));
 	}
 
 	/**
@@ -116,7 +107,7 @@ public class Path implements IOReadableWritable, Serializable {
 	 *        the child path
 	 */
 	 public Path(Path parent, String child) {
-		this(parent, createPath(child));
+		this(parent, new Path(child));
 	 }
 
 	/**
@@ -128,7 +119,7 @@ public class Path implements IOReadableWritable, Serializable {
 	 *        the child path
 	 */
 	public Path(String parent, Path child) {
-		this(createPath(parent), child);
+		this(new Path(parent), child);
 	}
 
 	/**
@@ -168,7 +159,7 @@ public class Path implements IOReadableWritable, Serializable {
 	 * @param pathString
 	 *        the string to construct a path from
 	 */
-	private Path(String pathString) {
+	public Path(String pathString) {
 		pathString = checkAndTrimPathArg(pathString);
 
 		// We can't use 'new URI(String)' directly, since it assumes things are
@@ -388,41 +379,6 @@ public class Path implements IOReadableWritable, Serializable {
 		}
 		return depth;
 	}
-
-	/**
-	 * Returns a qualified path object.
-	 * 
-	 * @param fs
-	 *        the FileSystem that should be used to obtain the current working directory
-	 * @return the qualified path object
-	 */
-	 public Path makeQualified(FileSystem fs) {
-		Path path = this;
-		if (!isAbsolute()) {
-			path = new Path(fs.getWorkingDirectory(), this);
-		}
-
-		final URI pathUri = path.getUri();
-		final URI fsUri = fs.getUri();
-
-		String scheme = pathUri.getScheme();
-		String authority = pathUri.getAuthority();
-		String fsAuthority = fsUri.getAuthority();
-
-		if (scheme != null && (authority != null || fsAuthority == null)) {
-			return path;
-		}
-
-		if (scheme == null) {
-			scheme = fsUri.getScheme();
-		}
-
-		if (authority == null) {
-			authority = (fsAuthority == null) ?"":fsAuthority;
-		}
-
-		return createPath(scheme + ":" + "//" + authority + pathUri.getPath());
-	 }
 
 	@Override
 	public boolean equals(Object o) {

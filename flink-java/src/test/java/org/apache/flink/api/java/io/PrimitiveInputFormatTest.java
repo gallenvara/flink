@@ -35,7 +35,7 @@ import org.apache.flink.core.fs.Path;
 
 public class PrimitiveInputFormatTest {
 
-	private static final Path PATH = new Path("an/ignored/file/");
+	private static final Path PATH = Path.createPath("an/ignored/file/");
 
 
 	@Test
@@ -183,7 +183,7 @@ public class PrimitiveInputFormatTest {
 		wrt.write(content);
 		wrt.close();
 
-		return new FileInputSplit(0, new Path(tempFile.toURI().toString()), 0, tempFile.length(), new String[] {"localhost"});
+		return new FileInputSplit(0, Path.createPath(tempFile.toURI().toString()), 0, tempFile.length(), new String[] {"localhost"});
 	}
 
 }
