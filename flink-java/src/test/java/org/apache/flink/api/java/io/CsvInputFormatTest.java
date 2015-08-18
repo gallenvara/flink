@@ -48,7 +48,7 @@ import static org.junit.Assert.fail;
 
 public class CsvInputFormatTest {
 	
-	private static final Path PATH = Path.createPath("an/ignored/file/");
+	private static final Path PATH = new Path("an/ignored/file/");
 	
 	//Static variables for testing the removal of \r\n to \n
 	private static final String FIRST_PART = "That is the first part";
@@ -726,7 +726,7 @@ public class CsvInputFormatTest {
 		wrt.write(content);
 		wrt.close();
 			
-		return new FileInputSplit(0, Path.createPath(tempFile.toURI().toString()), 0, tempFile.length(), new String[] {"localhost"});
+		return new FileInputSplit(0, new Path(tempFile.toURI().toString()), 0, tempFile.length(), new String[] {"localhost"});
 	}
 	
 	@Test
@@ -761,7 +761,7 @@ public class CsvInputFormatTest {
 			wrt.close();
 
 			final TupleTypeInfo<Tuple1<String>> typeInfo = TupleTypeInfo.getBasicTupleTypeInfo(String.class);
-			final CsvInputFormat<Tuple1<String>> inputFormat = new CsvInputFormat<Tuple1<String>>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+			final CsvInputFormat<Tuple1<String>> inputFormat = new CsvInputFormat<Tuple1<String>>(new Path(tempFile.toURI().toString()), typeInfo);
 
 			Configuration parameters = new Configuration(); 
 			inputFormat.configure(parameters);
@@ -824,7 +824,7 @@ public class CsvInputFormatTest {
 
 		@SuppressWarnings("unchecked")
 		TypeInformation<PojoItem> typeInfo = (TypeInformation<PojoItem>) TypeExtractor.createTypeInfo(PojoItem.class);
-		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(new Path(tempFile.toURI().toString()), typeInfo);
 
 		inputFormat.configure(new Configuration());
 		FileInputSplit[] splits = inputFormat.createInputSplits(1);
@@ -847,7 +847,7 @@ public class CsvInputFormatTest {
 
 		@SuppressWarnings("unchecked")
 		TypeInformation<PrivatePojoItem> typeInfo = (TypeInformation<PrivatePojoItem>) TypeExtractor.createTypeInfo(PrivatePojoItem.class);
-		CsvInputFormat<PrivatePojoItem> inputFormat = new CsvInputFormat<PrivatePojoItem>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+		CsvInputFormat<PrivatePojoItem> inputFormat = new CsvInputFormat<PrivatePojoItem>(new Path(tempFile.toURI().toString()), typeInfo);
 
 		inputFormat.configure(new Configuration());
 
@@ -883,7 +883,7 @@ public class CsvInputFormatTest {
 
 		@SuppressWarnings("unchecked")
 		TypeInformation<PojoItem> typeInfo = (TypeInformation<PojoItem>) TypeExtractor.createTypeInfo(PojoItem.class);
-		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(new Path(tempFile.toURI().toString()), typeInfo);
 		inputFormat.setFields(new boolean[]{true, true, true, true}, new Class<?>[]{Integer.class, Double.class, String.class, String.class});
 		inputFormat.setOrderOfPOJOFields(new String[]{"field1", "field3", "field2", "field4"});
 
@@ -908,7 +908,7 @@ public class CsvInputFormatTest {
 
 		@SuppressWarnings("unchecked")
 		TypeInformation<PojoItem> typeInfo = (TypeInformation<PojoItem>) TypeExtractor.createTypeInfo(PojoItem.class);
-		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(new Path(tempFile.toURI().toString()), typeInfo);
 		inputFormat.setFields(new boolean[]{true, false, true, false, true, true}, new Class[]{Integer.class, String
 			.class, Double.class, String.class});
 
@@ -933,7 +933,7 @@ public class CsvInputFormatTest {
 
 		@SuppressWarnings("unchecked")
 		TypeInformation<PojoItem> typeInfo = (TypeInformation<PojoItem>) TypeExtractor.createTypeInfo(PojoItem.class);
-		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(new Path(tempFile.toURI().toString()), typeInfo);
 		inputFormat.setFields(new boolean[]{true, false, false, true}, new Class[]{Integer.class, String.class});
 		inputFormat.setOrderOfPOJOFields(new String[]{"field1", "field4"});
 
@@ -957,7 +957,7 @@ public class CsvInputFormatTest {
 
 		@SuppressWarnings("unchecked")
 		TypeInformation<PojoItem> typeInfo = (TypeInformation<PojoItem>) TypeExtractor.createTypeInfo(PojoItem.class);
-		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+		CsvInputFormat<PojoItem> inputFormat = new CsvInputFormat<PojoItem>(new Path(tempFile.toURI().toString()), typeInfo);
 
 		try {
 			inputFormat.setOrderOfPOJOFields(new String[]{"field1", "field2"});
@@ -995,7 +995,7 @@ public class CsvInputFormatTest {
 		writer.close();
 
 		TypeInformation<Tuple2<String, String>> typeInfo = TupleTypeInfo.getBasicTupleTypeInfo(String.class, String.class);
-		CsvInputFormat<Tuple2<String, String>> inputFormat = new CsvInputFormat<Tuple2<String, String>>(Path.createPath(tempFile.toURI().toString()), typeInfo);
+		CsvInputFormat<Tuple2<String, String>> inputFormat = new CsvInputFormat<Tuple2<String, String>>(new Path(tempFile.toURI().toString()), typeInfo);
 
 		inputFormat.enableQuotedStringParsing('"');
 		inputFormat.setFieldDelimiter('|');

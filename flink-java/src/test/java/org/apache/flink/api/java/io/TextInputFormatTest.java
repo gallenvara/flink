@@ -53,7 +53,7 @@ public class TextInputFormatTest {
 			ps.println(SECOND);
 			ps.close();
 			
-			TextInputFormat inputFormat = new TextInputFormat(Path.createPath(tempFile.toURI().toString()));
+			TextInputFormat inputFormat = new TextInputFormat(new Path(tempFile.toURI().toString()));
 			
 			Configuration parameters = new Configuration(); 
 			inputFormat.configure(parameters);
@@ -114,7 +114,7 @@ public class TextInputFormatTest {
 			wrt.write(CONTENT);
 			wrt.close();
 			
-			TextInputFormat inputFormat = new TextInputFormat(Path.createPath(tempFile.toURI().toString()));
+			TextInputFormat inputFormat = new TextInputFormat(new Path(tempFile.toURI().toString()));
 			inputFormat.setFilePath(tempFile.toURI().toString());
 			
 			Configuration parameters = new Configuration(); 

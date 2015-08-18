@@ -1206,7 +1206,7 @@ public abstract class DataSet<T> {
 	 * @see TextOutputFormat
 	 */
 	public DataSink<T> writeAsText(String filePath) {
-		return output(new TextOutputFormat<T>(Path.createPath(filePath)));
+		return output(new TextOutputFormat<T>(new Path(filePath)));
 	}
 	
 	/**
@@ -1220,7 +1220,7 @@ public abstract class DataSet<T> {
 	 * @see TextOutputFormat
 	 */
 	public DataSink<T> writeAsText(String filePath, WriteMode writeMode) {
-		TextOutputFormat<T> tof = new TextOutputFormat<T>(Path.createPath(filePath));
+		TextOutputFormat<T> tof = new TextOutputFormat<T>(new Path(filePath));
 		tof.setWriteMode(writeMode);
 		return output(tof);
 	}
@@ -1286,7 +1286,7 @@ public abstract class DataSet<T> {
 	 * @see CsvOutputFormat
 	 */
 	public DataSink<T> writeAsCsv(String filePath, WriteMode writeMode) {
-		return internalWriteAsCsv(Path.createPath(filePath),CsvOutputFormat.DEFAULT_LINE_DELIMITER, CsvOutputFormat.DEFAULT_FIELD_DELIMITER, writeMode);
+		return internalWriteAsCsv(new Path(filePath),CsvOutputFormat.DEFAULT_LINE_DELIMITER, CsvOutputFormat.DEFAULT_FIELD_DELIMITER, writeMode);
 	}
 	
 	/**
@@ -1302,7 +1302,7 @@ public abstract class DataSet<T> {
 	 * @see CsvOutputFormat
 	 */
 	public DataSink<T> writeAsCsv(String filePath, String rowDelimiter, String fieldDelimiter) {
-		return internalWriteAsCsv(Path.createPath(filePath), rowDelimiter, fieldDelimiter, null);
+		return internalWriteAsCsv(new Path(filePath), rowDelimiter, fieldDelimiter, null);
 	}
 
 	/**
@@ -1319,7 +1319,7 @@ public abstract class DataSet<T> {
 	 * @see CsvOutputFormat
 	 */
 	public DataSink<T> writeAsCsv(String filePath, String rowDelimiter, String fieldDelimiter, WriteMode writeMode) {
-		return internalWriteAsCsv(Path.createPath(filePath), rowDelimiter, fieldDelimiter, writeMode);
+		return internalWriteAsCsv(new Path(filePath), rowDelimiter, fieldDelimiter, writeMode);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -1437,7 +1437,7 @@ public abstract class DataSet<T> {
 		Preconditions.checkNotNull(filePath, "File path must not be null.");
 		Preconditions.checkNotNull(outputFormat, "Output format must not be null.");
 
-		outputFormat.setOutputFilePath(Path.createPath(filePath));
+		outputFormat.setOutputFilePath(new Path(filePath));
 		return output(outputFormat);
 	}
 	
@@ -1457,7 +1457,7 @@ public abstract class DataSet<T> {
 		Preconditions.checkNotNull(writeMode, "Write mode must not be null.");
 		Preconditions.checkNotNull(outputFormat, "Output format must not be null.");
 
-		outputFormat.setOutputFilePath(Path.createPath(filePath));
+		outputFormat.setOutputFilePath(new Path(filePath));
 		outputFormat.setWriteMode(writeMode);
 		return output(outputFormat);
 	}
