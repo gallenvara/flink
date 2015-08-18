@@ -338,7 +338,7 @@ public class Path implements IOReadableWritable, Serializable {
 		final String path = uri.getPath();
 		final int lastSlash = path.lastIndexOf('/');
 		final int start = hasWindowsDrive(path, true) ? 3 : 0;
-		if ( // empty path
+		if ((path.length() == start) || // empty path
 				(lastSlash == start && path.length() == start + 1)) { // at root
 			return null;
 		}
