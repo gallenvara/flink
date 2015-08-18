@@ -234,7 +234,7 @@ public class Path implements IOReadableWritable, Serializable {
 
 	/**
 	 * Initializes a path object given the scheme, authority and path string.
-	 * 
+	 *
 	 * @param scheme
 	 *        the scheme string.
 	 * @param authority
