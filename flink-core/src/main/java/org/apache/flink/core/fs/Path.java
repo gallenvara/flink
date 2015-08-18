@@ -136,8 +136,7 @@ public class Path implements IOReadableWritable, Serializable {
 		final String parentPath = parentUri.getPath();
 		if (!(parentPath.equals("/") || parentPath.equals(""))) {
 			try {
-				parentUri = new URI(parentUri.getScheme(), parentUri.getAuthority(), parentUri.getPath() + "/", null,
-						null);
+				parentUri = new URI(parentUri.getScheme(), parentUri.getAuthority(), parentUri.getPath() + "/", null, null);
 			} catch (URISyntaxException e) {
 				throw new IllegalArgumentException(e);
 			}
@@ -146,7 +145,6 @@ public class Path implements IOReadableWritable, Serializable {
 		if (child.uri.getPath().startsWith(Path.SEPARATOR)) {
 			child = new Path(child.uri.getScheme(), child.uri.getAuthority(), child.uri.getPath().substring(1));
 		}
-
 
 		final URI resolved = parentUri.resolve(child.uri);
 		initialize(resolved.getScheme(), resolved.getAuthority(), normalizePath(resolved.getPath()));
@@ -236,7 +234,7 @@ public class Path implements IOReadableWritable, Serializable {
 
 	/**
 	 * Initializes a path object given the scheme, authority and path string.
-	 *
+	 * 
 	 * @param scheme
 	 *        the scheme string.
 	 * @param authority
