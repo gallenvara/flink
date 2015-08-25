@@ -111,6 +111,9 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 				num--;
 			}
 		}
+		if (numSamples > selectlist.size()) {
+			System.out.println("Sampling failure");
+		}
 		return selectlist.iterator();
 	}
 }
