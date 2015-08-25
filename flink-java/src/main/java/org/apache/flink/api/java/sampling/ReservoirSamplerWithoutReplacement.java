@@ -93,7 +93,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			return EMPTY_INTERMEDIATE_ITERABLE;
 		}
 
-		List<IntermediateSampleData<T>> selectlist = new ArrayList<>(numSamples);
+		List<IntermediateSampleData<T>> selectlist = new ArrayList<>();
 		int index = 0;
 
 		while (input.hasNext()) {
@@ -105,8 +105,8 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			}
 		if (numSamples < selectlist.size()) {
 			Collections.sort(selectlist, new IntermediateSampleData<T>());
-			int num = selectlist.size();
-			while (num > numSamples){
+			int num = selectlist.size() - 1;
+			while (num >= numSamples && num >= 0){
 				selectlist.remove(num);
 				num--;
 			}
