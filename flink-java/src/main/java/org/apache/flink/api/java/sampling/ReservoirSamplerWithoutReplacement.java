@@ -37,7 +37,7 @@ import java.util.*;
  * @param <T> The type of the sampler.
  */
 public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSampler<T> {
-	
+
 	private final Random random;
 
 	/**
@@ -51,7 +51,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 		Preconditions.checkArgument(numSamples >= 0, "numSamples should be non-negative.");
 		this.random = random;
 	}
-	
+
 	/**
 	 * Create a new sampler with reservoir size and a default random number generator.
 	 *
@@ -60,7 +60,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 	public ReservoirSamplerWithoutReplacement(int numSamples) {
 		this(numSamples, new Random());
 	}
-	
+
 	/**
 	 * Create a new sampler with reservoir size and the seed for random number generator.
 	 *
@@ -68,7 +68,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 	 * @param seed       Random number generator seed.
 	 */
 	public ReservoirSamplerWithoutReplacement(int numSamples, long seed) {
-		
+
 		this(numSamples, new Random(seed));
 	}
 
@@ -82,7 +82,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 
 	public double threshold_q1(int index){
 		double expectSuccessRate = 0.99;
-		double y = - Math.log(1 - expectSuccessRate) / index;
+		double y = - Math.log10(1 - expectSuccessRate) / index;
 		return min(1, numSamples/index + y + Math.sqrt(y*y + 2*y*numSamples/index));
 	}
 
@@ -95,24 +95,33 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 
 		List<IntermediateSampleData<T>> selectlist = new ArrayList<>();
 		int index = 0;
+		int elementNum = 0;
 
 		while (input.hasNext()) {
 			T element = input.next();
 			index++;
 			double rand = random.nextDouble();
 			double q1 = threshold_q1(index);
-			if (rand < q1) selectlist.add(new IntermediateSampleData<T>(rand, element));
+			if (rand < q1) {
+				selectlist.add(new IntermediateSampleData<T>(rand, element));
+				elementNum++;
 			}
-		if (numSamples < selectlist.size()) {
-			Collections.sort(selectlist, new IntermediateSampleData<T>());
-			int num = selectlist.size() - 1;
-			while (num >= numSamples && num >= 0){
-				selectlist.remove(num);
-				num--;
 			}
-		}
-		if (numSamples > selectlist.size()) {
+		if (numSamples > elementNum) {
 			System.out.println("Sampling failure");
+		}
+		else if (numSamples < elementNum) {
+			Collections.sort(selectlist, new Comparator<IntermediateSampleData<T>>() {
+				@Override
+				public int compare(IntermediateSampleData<T> t1, IntermediateSampleData<T> t2) {
+					return t1.getWeight() >= t2.getWeight() ? 1 : -1;
+				}
+			});
+			//int num = selectlist.size() - 1;
+			while (elementNum >= numSamples && elementNum >= 0){
+				selectlist.remove(elementNum);
+				elementNum--;
+			}
 		}
 		return selectlist.iterator();
 	}
