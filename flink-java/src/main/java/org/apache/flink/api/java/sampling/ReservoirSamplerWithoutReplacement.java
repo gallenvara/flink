@@ -19,9 +19,7 @@ package org.apache.flink.api.java.sampling;
 
 import com.google.common.base.Preconditions;
 
-import java.util.Iterator;
-import java.util.PriorityQueue;
-import java.util.Random;
+import java.util.*;
 
 /**
  * A simple in memory implementation of Reservoir Sampling without replacement, and with only one
@@ -73,7 +71,21 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 		
 		this(numSamples, new Random(seed));
 	}
-	
+
+	public double min(double x, double y){
+		return x < y ? x : y;
+	}
+
+	public double max(double x, double y){
+		return x > y ? x : y;
+	}
+
+	public double threshold_q1(int index){
+		double expectSuccessRate = 0.99999995;
+		double y = ( - Math.log(1 - expectSuccessRate)) / index;
+		return min(1, numSamples/index + y + Math.sqrt(y*y + 2*y*numSamples/index));
+	}
+
 	@Override
 	public Iterator<IntermediateSampleData<T>> sampleInPartition(Iterator<T> input) {
 		if (numSamples == 0) {
@@ -81,26 +93,32 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 		}
 
 		// This queue holds fixed number elements with the top K weight for current partition.
-		PriorityQueue<IntermediateSampleData<T>> queue = new PriorityQueue<IntermediateSampleData<T>>(numSamples);
-		int index = 0;
+		PriorityQueue<IntermediateSampleData<T>> queue = new PriorityQueue<IntermediateSampleData<T>>();
+		int index = 1;
 		IntermediateSampleData<T> smallest = null;
 		while (input.hasNext()) {
 			T element = input.next();
-			if (index < numSamples) {
+			double rand = random.nextDouble();
+			if (rand < threshold_q1(index)) {
 				// Fill the queue with first K elements from input.
-				queue.add(new IntermediateSampleData<T>(random.nextDouble(), element));
-				smallest = queue.peek();
-			} else {
-				double rand = random.nextDouble();
-				// Remove the element with the smallest weight, and append current element into the queue.
-				if (rand > smallest.getWeight()) {
-					queue.remove();
-					queue.add(new IntermediateSampleData<T>(rand, element));
-					smallest = queue.peek();
-				}
+				queue.add(new IntermediateSampleData<T>(rand, element));
+				//smallest = queue.peek();
 			}
 			index++;
 		}
-		return queue.iterator();
+		List<IntermediateSampleData<T>> selectList = new ArrayList<IntermediateSampleData<T>>();
+		int num = 0;
+		if (queue.size() < numSamples) {
+			System.out.println("Sampling Failure!");
+		}
+		else {
+			while (num <= numSamples) {
+				smallest = queue.peek();
+				selectList.add(smallest);
+				queue.remove(smallest);
+				num++;
+			}
+		}
+		return selectList.iterator();
 	}
 }
