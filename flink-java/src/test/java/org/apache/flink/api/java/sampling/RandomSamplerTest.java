@@ -338,6 +338,10 @@ public class RandomSamplerTest {
 		double[] sampled = getSampledOutput(sampler, sampleOnPartitions);
 		double pValue = ksTest.kolmogorovSmirnovStatistic(sampled, defaultSampler);
 		double dValue = getDValue(sampled.length, defaultSampler.length);
+		for (int i =0 ;i < sampled.length ;i++){
+			System.out.print(sampled[i] + "   ");
+		}
+		System.out.println();
 		if (expectSuccess) {
 			assertTrue(String.format("KS test result with p value(%f), d value(%f)", pValue, dValue), pValue <= dValue);
 		} else {
