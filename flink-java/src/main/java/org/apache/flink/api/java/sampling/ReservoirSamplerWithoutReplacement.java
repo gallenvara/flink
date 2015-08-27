@@ -81,9 +81,9 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 	}
 
 	public double threshold_q1(int index){
-		double expectSuccessRate = 0.99;
-		double y = - Math.log10(1 - expectSuccessRate) / index;
-		return min(1, numSamples/index + y + Math.sqrt(y*y + 2*y*numSamples/index));
+		double expectSuccessRate = 0.9;//
+		double y = - Math.log(1 - expectSuccessRate) / index;
+		return min(1.0, numSamples*1.0 /index + y + Math.sqrt(y*y + 2*y*numSamples/index));
 	}
 
 
@@ -93,7 +93,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			return EMPTY_INTERMEDIATE_ITERABLE;
 		}
 
-		List<IntermediateSampleData<T>> selectList = new ArrayList<>();
+		List<IntermediateSampleData<T>> selectList = new ArrayList<IntermediateSampleData<T>>();
 		int index = 0;
 
 		while (input.hasNext()) {
@@ -101,21 +101,19 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			index++;
 			double rand = random.nextDouble();
 			double q1 = threshold_q1(index);
-			if (rand < q1) selectList.add(new IntermediateSampleData<T>(rand, element));
+			if (rand < q1) {
+				selectList.add(new IntermediateSampleData<T>(rand, element));
 			}
+			}
+		System.out.println(selectList.size());
 		if (numSamples > selectList.size()) {
 			System.out.println("Sampling failure");
 		}
 		else if (numSamples < selectList.size()) {
-			Collections.sort(selectList, new Comparator<IntermediateSampleData<T>>() {
-				@Override
-				public int compare(IntermediateSampleData<T> t1, IntermediateSampleData<T> t2) {
-					return t1.getWeight() >= t2.getWeight() ? 1 : -1;
-				}
-			});
-			int num = selectList.size() - 1;
-			while (num >= numSamples){
-				selectList.remove(num);
+			Collections.sort(selectList);
+			int num = selectList.size();
+			while (num > numSamples){
+				selectList.remove(num-1);
 				num--;
 			}
 		}

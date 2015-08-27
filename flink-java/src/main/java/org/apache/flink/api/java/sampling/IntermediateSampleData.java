@@ -25,11 +25,9 @@ import java.util.Comparator;
  *
  * @param <T> The type of sample data.
  */
-public class IntermediateSampleData<T> implements Comparable<IntermediateSampleData<T>>, Comparator<IntermediateSampleData<T>> {
+public class IntermediateSampleData<T> implements Comparable<IntermediateSampleData<T>> {
 	private double weight;
 	private T element;
-
-	public IntermediateSampleData(){}
 
 	public IntermediateSampleData(double weight, T element) {
 		this.weight = weight;
@@ -46,11 +44,7 @@ public class IntermediateSampleData<T> implements Comparable<IntermediateSampleD
 
 	@Override
 	public int compareTo(IntermediateSampleData<T> other) {
-		return this.weight >= other.getWeight() ? 1 : -1;
+		return this.getWeight() >= other.getWeight() ? 1 : -1;
 	}
 
-	@Override
-	public int compare(IntermediateSampleData<T> t1, IntermediateSampleData<T> t2) {
-		return t1.getWeight() >= t2.getWeight() ? 1 : -1;
-	}
 }
