@@ -51,7 +51,7 @@ import static org.junit.Assert.assertTrue;
  * @see <a href="https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test">Kolmogorov Smirnov test</a>
  */
 public class RandomSamplerTest {
-	private final static int SOURCE_SIZE = 10000;
+	private final static int SOURCE_SIZE = 10000000;
 	private static KolmogorovSmirnovTest ksTest;
 	private static List<Double> source;
 	private final static int DEFFAULT_PARTITION_NUMBER=10;
@@ -166,7 +166,7 @@ public class RandomSamplerTest {
 	
 	@Test
 	public void testReservoirSamplerSampledSize2() {
-		RandomSampler<Double> sampler = new ReservoirSamplerWithoutReplacement<Double>(20000);
+		RandomSampler<Double> sampler = new ReservoirSamplerWithoutReplacement<Double>(20000000);
 		Iterator<Double> sampled = sampler.sample(source.iterator());
 		assertTrue("ReservoirSamplerWithoutReplacement sampled output size should not beyond the source size.", getSize(sampled) == SOURCE_SIZE);
 	}
@@ -184,6 +184,12 @@ public class RandomSamplerTest {
 		verifyReservoirSamplerWithoutReplacement(500, false);
 		verifyReservoirSamplerWithoutReplacement(1000, false);
 		verifyReservoirSamplerWithoutReplacement(5000, false);
+		verifyReservoirSamplerWithoutReplacement(10000, false);
+		verifyReservoirSamplerWithoutReplacement(50000, false);
+		verifyReservoirSamplerWithoutReplacement(100000, false);
+		verifyReservoirSamplerWithoutReplacement(500000, false);
+		verifyReservoirSamplerWithoutReplacement(1000000, false);
+		verifyReservoirSamplerWithoutReplacement(5000000, false);
 	}
 	
 	@Test
@@ -198,7 +204,7 @@ public class RandomSamplerTest {
 	public void testReservoirSamplerWithMultiSourcePartitions1() {
 		initSourcePartition();
 
-		verifyReservoirSamplerWithoutReplacement(100, true);
+		//verifyReservoirSamplerWithoutReplacement(100, true);
 		verifyReservoirSamplerWithoutReplacement(500, true);
 		verifyReservoirSamplerWithoutReplacement(1000, true);
 		verifyReservoirSamplerWithoutReplacement(5000, true);

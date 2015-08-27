@@ -18,6 +18,7 @@
 package org.apache.flink.api.java.sampling;
 
 import com.google.common.base.Preconditions;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 
 import java.util.*;
 
@@ -93,7 +94,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			return EMPTY_INTERMEDIATE_ITERABLE;
 		}
 
-		List<IntermediateSampleData<T>> selectList = new ArrayList<IntermediateSampleData<T>>();
+		/**List<IntermediateSampleData<T>> selectList = new ArrayList<IntermediateSampleData<T>>();
 		int index = 0;
 
 		while (input.hasNext()) {
@@ -102,6 +103,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			double rand = random.nextDouble();
 			double q1 = threshold_q1(index);
 			if (rand < q1) {
+				System.out.println(index + "is added to the queue ,now queue.size() is " + selectList.size());
 				selectList.add(new IntermediateSampleData<T>(rand, element));
 			}
 			}
@@ -115,6 +117,38 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			while (num > numSamples){
 				selectList.remove(num-1);
 				num--;
+			}
+		}*/
+		PriorityQueue<IntermediateSampleData<T>> queue = new PriorityQueue<IntermediateSampleData<T>>();
+		List<IntermediateSampleData<T>> selectList = new ArrayList<IntermediateSampleData<T>>();
+		int index = 0;
+		while (input.hasNext()) {
+			T element = input.next();
+			index++;
+			double rand = random.nextDouble();
+			double q1 = threshold_q1(index);
+			//System.out.println(queue.size());
+			if (rand < q1) {
+				System.out.println(index + "is added to the queue ,now queue.size() is " + queue.size());
+				queue.add(new IntermediateSampleData<T>(rand, element));
+
+			}
+		}
+		System.out.println(queue.size());
+		IntermediateSampleData<T> smallest = queue.peek();
+
+		if (numSamples >= queue.size()) {
+			System.out.println("Sampling Failure");
+			return queue.iterator();
+		}
+		else if (numSamples < queue.size()) {
+			int num = 0;
+			while (num < numSamples){
+
+				selectList.add(smallest);
+				queue.remove(smallest);
+				smallest = queue.peek();
+				num++;
 			}
 		}
 		return selectList.iterator();
