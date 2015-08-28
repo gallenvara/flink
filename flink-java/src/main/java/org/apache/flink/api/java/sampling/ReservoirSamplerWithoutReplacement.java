@@ -129,12 +129,12 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 			double q1 = threshold_q1(index);
 			//System.out.println(queue.size());
 			if (rand < q1) {
-				System.out.println(index + "is added to the queue ,now queue.size() is " + queue.size());
+				//System.out.println(index + "is added to the queue ,now queue.size() is " + queue.size());
 				queue.add(new IntermediateSampleData<T>(rand, element));
 
 			}
 		}
-		System.out.println(queue.size());
+		//System.out.println(queue.size());
 		IntermediateSampleData<T> smallest = queue.peek();
 
 		if (numSamples >= queue.size()) {
