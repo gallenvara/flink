@@ -40,6 +40,7 @@ import java.util.*;
 public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSampler<T> {
 
 	private final Random random;
+	private final static int SOURCE_SIZE = 10000000;
 
 	/**
 	 * Create a new sampler with reservoir size and a supplied random number generator.
@@ -134,7 +135,7 @@ public class ReservoirSamplerWithoutReplacement<T> extends DistributedRandomSamp
 
 			}
 		}
-		//System.out.println(queue.size());
+		System.out.println("Samples= " + numSamples +" , reject element = " + (SOURCE_SIZE - numSamples));
 		IntermediateSampleData<T> smallest = queue.peek();
 
 		if (numSamples >= queue.size()) {

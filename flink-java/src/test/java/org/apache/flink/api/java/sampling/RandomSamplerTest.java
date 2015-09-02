@@ -204,10 +204,14 @@ public class RandomSamplerTest {
 	public void testReservoirSamplerWithMultiSourcePartitions1() {
 		initSourcePartition();
 
-		//verifyReservoirSamplerWithoutReplacement(100, true);
+		verifyReservoirSamplerWithoutReplacement(100, true);
 		verifyReservoirSamplerWithoutReplacement(500, true);
 		verifyReservoirSamplerWithoutReplacement(1000, true);
 		verifyReservoirSamplerWithoutReplacement(5000, true);
+		verifyReservoirSamplerWithoutReplacement(10000, true);
+		verifyReservoirSamplerWithoutReplacement(50000, true);
+		verifyReservoirSamplerWithoutReplacement(100000, true);
+		verifyReservoirSamplerWithoutReplacement(500000, true);
 	}
 
 	@Test
