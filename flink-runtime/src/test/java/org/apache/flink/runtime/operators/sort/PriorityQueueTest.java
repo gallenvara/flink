@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class PriorityQueueTest {
-	private static int QUEUE_SIZE = 1024 * 1024 * 32; 
+	private static int QUEUE_SIZE; 
 
 	private static final int MEMORY_SIZE = 1024 * 1024 * 512;
 
@@ -55,39 +55,49 @@ public class PriorityQueueTest {
 
 	private MemoryManager memoryManager;
 
-	private TypeSerializer<IntPair> intPairSerializer;
-	
-	private TypeComparator<IntPair> intPairComparator;
-	
-	private TypeSerializer<IntStringPair> intStringPairSerializer;
-
-	private TypeComparator<IntStringPair> intStringPairComparator;
-
-	private StringSerializer serializer;
-
-	private IntSerializer intSerializer;
-
-	private IOManager ioManager;
-
 	private static int[] fixData =new int[QUEUE_SIZE];
 
 	private static String[] noFixData = new String[QUEUE_SIZE];
 
 	private Random rand;
+
+	private static QuickHeapPriorityQueue<IntPair> intPairQuickHeapQueue;
+	
+	private static QuickHeapPriorityQueue<IntStringPair> intStringPairQuickHeapQueue;
+	
+	private static RadixHeapPriorityQueue<Integer> intPairRadixHeapQueue;
+
+	private static RadixHeapPriorityQueue<String> intStringPairRadixHeapQueue;
+	
+	private static PriorityQueue<IntPair> intPairPriorityQueue;
+	
+	private static PriorityQueue<IntStringPair> intStringPairPriorityQueue;
 	
 
 	@Setup
-	public void init() {
+	public void init() throws Exception{
+		final int numSegments = MEMORY_SIZE / MEMORY_PAGE_SIZE;
 		this.memoryManager = new MemoryManager(MEMORY_SIZE, MEMORY_PAGE_SIZE);
-		this.ioManager = new IOManagerAsync();
-		this.intPairSerializer = new IntPairSerializer();
-		this.intPairComparator = new IntPairComparator();
-		this.intStringPairComparator = new IntStringPairComparator(true);
-		this.intStringPairSerializer = new IntStringPairSerializer();
-		this.serializer = new StringSerializer();
-		this.intSerializer = new IntSerializer();
+		final List<MemorySegment> memory = this.memoryManager.allocatePages(new DummyInvokable(), numSegments);
+
+		IOManager ioManager = new IOManagerAsync();
+		TypeSerializer<IntPair> intPairSerializer = new IntPairSerializer();
+		TypeComparator<IntPair> intPairComparator = new IntPairComparator();
+		TypeComparator<IntStringPair> intStringPairComparator = new IntStringPairComparator(true);
+		TypeSerializer<IntStringPair> intStringPairSerializer = new IntStringPairSerializer();
+		StringSerializer serializer = new StringSerializer();
+		IntSerializer intSerializer = new IntSerializer();
+		
 		this.makeNoFixSizeData();
 		this.makeFixSizeData();
+		
+		intPairQuickHeapQueue = new QuickHeapPriorityQueue<>(memory, intPairSerializer, intPairComparator, memoryManager, ioManager);
+		intStringPairQuickHeapQueue = new QuickHeapPriorityQueue<>(memory, intStringPairSerializer, intStringPairComparator, memoryManager, ioManager);
+		intPairRadixHeapQueue = new RadixHeapPriorityQueue<>(intSerializer, memory, ioManager);
+		intStringPairRadixHeapQueue = new RadixHeapPriorityQueue<>(serializer, memory, ioManager);
+		intPairPriorityQueue = new PriorityQueue<>();
+		intStringPairPriorityQueue = new PriorityQueue<>();
+		
 	}
 
 	@TearDown
@@ -119,115 +129,188 @@ public class PriorityQueueTest {
 	}
 
 	@Benchmark
-	public void testQuickHeapWithFixData() throws Exception {
-		final int numSegments = MEMORY_SIZE / MEMORY_PAGE_SIZE;
-		this.rand = new Random();
-		final List<MemorySegment> memory = this.memoryManager.allocatePages(new DummyInvokable(), numSegments);
-		QuickHeapPriorityQueue<IntPair> heap =
-				new QuickHeapPriorityQueue<>(memory, intPairSerializer, intPairComparator, memoryManager, ioManager);
+	public void testQuickHeapWithWriteFixData() throws Exception {
+			int count = 0;
+			while (count < QUEUE_SIZE) {
+				intPairQuickHeapQueue.insert(new IntPair(fixData[count], fixData[count]));
+				count++;
+			}
+	}
+	
+	@Benchmark
+	public void testQuickHeapWithReadFixData() throws Exception {
+		if (intPairQuickHeapQueue.size() == 0) {
+			this.testQuickHeapWithWriteFixData();
+		} else {
+			try {
+				int count = 0;
+				IntPair element;
+				while (count < QUEUE_SIZE) {
+					element = intPairQuickHeapQueue.next();
+					//System.out.println(element.getKey() + "  " + element.getValue());
+					count++;
+				}
+			} finally {
+				intPairQuickHeapQueue.close();
+			}
+		}
+	}
+
+	@Benchmark
+	public void testQuickHeapWithWriteNoFixData() throws Exception{
 		
-		try	{
+		
 			int count = 0;
 			while (count < QUEUE_SIZE) {
-				heap.insert(new IntPair(fixData[count], fixData[count]));
+				intStringPairQuickHeapQueue.insert(new IntStringPair(fixData[count], noFixData[count]));
 				count++;
 			}
-		}finally {
-			heap.close();
+	}
+
+	@Benchmark
+	public void testQuickHeapWithReadNoFixData() throws Exception {
+		if (intStringPairQuickHeapQueue.size() == 0) {
+			this.testQuickHeapWithWriteNoFixData();
+		} else {
+			try {
+				int count = 0;
+				IntStringPair element;
+				while (count < QUEUE_SIZE) {
+					element = intStringPairQuickHeapQueue.next();
+					//System.out.println(element.getKey() + "  " + element.getValue());
+					count++;
+				}
+			} finally {
+				intStringPairQuickHeapQueue.close();
+			}
 		}
 	}
 
 	@Benchmark
-	public void testQuickHeapWithNoFixData() throws Exception{
-		final int numSegments = MEMORY_SIZE / MEMORY_PAGE_SIZE;
-		this.rand = new Random();
-		final List<MemorySegment> memory = this.memoryManager.allocatePages(new DummyInvokable(), numSegments);
-		//IntStringPairComparator stringComparator2 = new IntStringPairComparator(false);
-		QuickHeapPriorityQueue<IntStringPair> heap =
-				new QuickHeapPriorityQueue<>(memory, intStringPairSerializer, intStringPairComparator, memoryManager, ioManager);
+	public void testRadixHeapWithWriteNoFixData() throws Exception {
 
-		try	{
+
 			int count = 0;
 			while (count < QUEUE_SIZE) {
-				heap.insert(new IntStringPair(fixData[count], noFixData[count]));
-				count++;
-			}
-
-		}finally {
-			heap.close();
-		}
-	}
-
-	@Benchmark
-	public void testRadixHeapWithNoFixData() throws Exception {
-		final int numSegments = MEMORY_SIZE / MEMORY_PAGE_SIZE;
-		final List<MemorySegment> memory = this.memoryManager.allocatePages(new DummyInvokable(), numSegments);
-		RadixHeapPriorityQueue<String> heap = new RadixHeapPriorityQueue<>(serializer, memory, ioManager);
-
-		try {
-			int count = 0;
-			while (count < QUEUE_SIZE) {
-				heap.insert(fixData[count], noFixData[count]);
+				intStringPairRadixHeapQueue.insert(fixData[count], noFixData[count]);
 				//System.out.println(noFixData[count] + "   " + fixData[count]);
 				count++;
 			}
-		} finally {
-			heap.close();
-			this.memoryManager.release(heap.availableMemory);
+	}
+	
+	@Benchmark
+	public void testRadixHeapWithReadNoFixData() throws Exception {
+		if (intStringPairRadixHeapQueue.poll() == null) {
+			this.testRadixHeapWithWriteNoFixData();
+		} else {
+			try {
+				int count = 0;
+				String element;
+				while (count < QUEUE_SIZE) {
+					element = intStringPairRadixHeapQueue.poll();
+					//System.out.println(element);
+					count++;
+				}
+			} finally {
+				intStringPairRadixHeapQueue.close();
+				this.memoryManager.release(intStringPairRadixHeapQueue.availableMemory);
+			}
 		}
 	}
 
 	@Benchmark
-	public void testRadixHeapWithFixData() throws Exception {
-		final int numSegments = MEMORY_SIZE / MEMORY_PAGE_SIZE;
-		final List<MemorySegment> memory = this.memoryManager.allocatePages(new DummyInvokable(), numSegments);
-		RadixHeapPriorityQueue<Integer> heap = new RadixHeapPriorityQueue<>(intSerializer, memory, ioManager);
-
-		try {
+	public void testRadixHeapWithWriteFixData() throws Exception {
 			int count = 0;
 			while (count < QUEUE_SIZE) {
-				heap.insert(fixData[count], fixData[count]);
+				intPairRadixHeapQueue.insert(fixData[count], fixData[count]);
 				count++;
 			}
-		} finally {
-			heap.close();
-			this.memoryManager.release(heap.availableMemory);
+	}
+
+	@Benchmark
+	public void testRadixHeapWithReadFixData() throws Exception {
+
+		if (intPairRadixHeapQueue.poll() == null) {
+			this.testRadixHeapWithWriteFixData();
+		} else {
+			try {
+				int count = 0;
+				int element;
+				while (count < QUEUE_SIZE) {
+					element = intPairRadixHeapQueue.poll();
+					//System.out.println(element);
+					count++;
+				}
+			} finally {
+				intPairRadixHeapQueue.close();
+				this.memoryManager.release(intPairRadixHeapQueue.availableMemory);
+			}
 		}
 	}
 
 	
 	@Benchmark
-	public void testJavaPriorityQueueWithFixData() {
-
-		PriorityQueue<IntPair> queue = new PriorityQueue<>();
-		try {
-			int count = 0;
-			while (count < QUEUE_SIZE) {
-				queue.add(new IntPair(fixData[count], fixData[count]));
-				count++;
-			}
-		}finally {
-			queue.clear();
-		}
-	}
-	
-	@Benchmark
-	public void testJavaPriorityQueueWithNoFixData() {
-
-		PriorityQueue<IntStringPair> queue = new PriorityQueue<>();
-		try {
-			int count = 0;
-			while (count < QUEUE_SIZE) {
-				queue.add(new IntStringPair(fixData[count], noFixData[count]));
-				count++;
-			}
-		}finally {
-			queue.clear();
-		}
-	}
-	
-	public static void main(String[] args) throws RunnerException {
+	public void testJavaPriorityQueueWithWriteFixData() {
 		
+			int count = 0;
+			while (count < QUEUE_SIZE) {
+				intPairPriorityQueue.add(new IntPair(fixData[count], fixData[count]));
+				count++;
+			}
+		
+	}
+	
+	@Benchmark
+	public void testJavaPriorityQueueWithReadFixData() throws Exception{
+		if (intPairPriorityQueue.isEmpty()) {
+			this.testJavaPriorityQueueWithWriteFixData();
+		} else {
+			try {
+				int count = 0;
+				IntPair element;
+				while (count < QUEUE_SIZE) {
+					element = intPairPriorityQueue.poll();
+					//System.out.println(element);
+					count++;
+				}
+			} finally {
+				intPairPriorityQueue.clear();
+			}
+		}
+	}
+	
+	@Benchmark
+	public void testJavaPriorityQueueWithWriteNoFixData() {
+		
+			int count = 0;
+			while (count < QUEUE_SIZE) {
+				intStringPairPriorityQueue.add(new IntStringPair(fixData[count], noFixData[count]));
+				count++;
+			}
+	}
+	
+	@Benchmark
+	public void testJavaPriorityQueueWithReadNoFixData() {
+		if (intStringPairPriorityQueue.isEmpty()) {
+			this.testJavaPriorityQueueWithWriteNoFixData();
+		} else {
+			try {
+				int count = 0;
+				IntStringPair element;
+				while (count < QUEUE_SIZE) {
+					element = intStringPairPriorityQueue.poll();
+					//System.out.println(element);
+					count++;
+				}
+			} finally {
+				intStringPairPriorityQueue.clear();
+			}
+		}
+	}
+	
+	public static void main(int sizeNum) throws RunnerException {
+		
+		QUEUE_SIZE = 1024 * 1024 * sizeNum;
 		Options opt = new OptionsBuilder()
 				.include(PriorityQueueTest.class.getSimpleName())
 				.warmupIterations(2)
