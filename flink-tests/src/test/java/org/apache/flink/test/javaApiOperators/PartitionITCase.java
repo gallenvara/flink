@@ -71,6 +71,30 @@ public class PartitionITCase extends MultipleProgramsTestBase {
 	}
 
 	@Test
+	public void testRangePartitionByKeyField() throws Exception {
+		/*
+		 * Test hash partition by key field
+		 */
+
+		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+
+		DataSet<Tuple3<Integer, Long, String>> ds = CollectionDataSets.get3TupleDataSet(env);
+		DataSet<Long> uniqLongs = ds
+			.partitionByRange(1)
+			.mapPartition(new UniqueLongMapper());
+		List<Long> result = uniqLongs.collect();
+
+		String expected = "1\n" +
+			"2\n" +
+			"3\n" +
+			"4\n" +
+			"5\n" +
+			"6\n";
+
+		compareResultAsText(result, expected);
+	}
+
+	@Test
 	public void testHashPartitionByKeySelector() throws Exception {
 		/*
 		 * Test hash partition by key selector
@@ -90,6 +114,30 @@ public class PartitionITCase extends MultipleProgramsTestBase {
 				"4\n" +
 				"5\n" +
 				"6\n";
+
+		compareResultAsText(result, expected);
+	}
+
+	@Test
+	public void testRangePartitionByKeySelector() throws Exception {
+		/*
+		 * Test range partition by key selector
+		 */
+
+		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+
+		DataSet<Tuple3<Integer, Long, String>> ds = CollectionDataSets.get3TupleDataSet(env);
+		DataSet<Long> uniqLongs = ds
+			.partitionByRange(new KeySelector1())
+			.mapPartition(new UniqueLongMapper());
+		List<Long> result = uniqLongs.collect();
+
+		String expected = "1\n" +
+			"2\n" +
+			"3\n" +
+			"4\n" +
+			"5\n" +
+			"6\n";
 
 		compareResultAsText(result, expected);
 	}
@@ -198,6 +246,31 @@ public class PartitionITCase extends MultipleProgramsTestBase {
 	}
 
 	@Test
+	public void testRangePartitionByKeyFieldAndDifferentParallelism() throws Exception {
+		/*
+		 * Test hash partition by key field and different parallelism
+		 */
+
+		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+		env.setParallelism(3);
+
+		DataSet<Tuple3<Integer, Long, String>> ds = CollectionDataSets.get3TupleDataSet(env);
+		DataSet<Long> uniqLongs = ds
+			.partitionByRange(1).setParallelism(4)
+			.mapPartition(new UniqueLongMapper());
+		List<Long> result = uniqLongs.collect();
+
+		String expected = "1\n" +
+			"2\n" +
+			"3\n" +
+			"4\n" +
+			"5\n" +
+			"6\n";
+
+		compareResultAsText(result, expected);
+	}
+
+	@Test
 	public void testHashPartitionWithKeyExpression() throws Exception {
 		/*
 		 * Test hash partition with key expression
@@ -215,6 +288,28 @@ public class PartitionITCase extends MultipleProgramsTestBase {
 		String expected = "10000\n" +
 				"20000\n" +
 				"30000\n";
+
+		compareResultAsText(result, expected);
+	}
+
+	@Test
+	public void testRangePartitionWithKeyExpression() throws Exception {
+		/*
+		 * Test hash partition with key expression
+		 */
+
+		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+		env.setParallelism(3);
+
+		DataSet<POJO> ds = CollectionDataSets.getDuplicatePojoDataSet(env);
+		DataSet<Long> uniqLongs = ds
+			.partitionByRange("nestedPojo.longNumber").setParallelism(4)
+			.mapPartition(new UniqueNestedPojoLongMapper());
+		List<Long> result = uniqLongs.collect();
+
+		String expected = "10000\n" +
+			"20000\n" +
+			"30000\n";
 
 		compareResultAsText(result, expected);
 	}
