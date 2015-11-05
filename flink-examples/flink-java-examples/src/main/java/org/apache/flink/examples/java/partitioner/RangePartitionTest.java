@@ -28,11 +28,13 @@ import org.apache.flink.util.Collector;
 import java.util.HashSet;
 
 public class RangePartitionTest {
+	
+	private static String InputFile;
 
 	
 	public void testRangePartition() throws Exception {
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-		DataSet<Tuple3<String, Integer, Long>> dataSet = env.readCsvFile("file:///testdata/textfile.txt").fieldDelimiter(" ").lineDelimiter("\n").includeFields("111").types(String.class, Integer.class, Long.class);
+		DataSet<Tuple3<String, Integer, Long>> dataSet = env.readCsvFile(InputFile).fieldDelimiter(" ").lineDelimiter("\n").includeFields("111").types(String.class, Integer.class, Long.class);
 		/*DataSet<Tuple3<Integer, Long, String>> ds = env.readFile(new FileInputFormat<Tuple3<Integer, Long, String>>() {
 			@Override
 			public boolean reachedEnd() throws IOException {
@@ -51,6 +53,7 @@ public class RangePartitionTest {
 	}
 	
 	public static void main(String[] args) throws Exception{
+		InputFile = args[0];
 		RangePartitionTest rangePartitionTest = new RangePartitionTest();
 		rangePartitionTest.testRangePartition();
 	}
