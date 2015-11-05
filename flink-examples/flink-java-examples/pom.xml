@@ -246,6 +246,28 @@ under the License.
 							</includes>
 						</configuration>
 					</execution>
+                    
+                    <!-- GenerateTextFile -->
+                    <execution>
+                        <id>GenerateTextFile</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>GenerateTextFile</classifier>
+                            
+                            <archive>
+                                <manifestEntries>
+                                    <program-class>org.apache.flink.examples.java.generator.GenerateTextFile</program-class>
+                                </manifestEntries>
+                            </archive>
+                            
+                            <includes>
+                                <include>**/java/generator/*</include>
+                            </includes>
+                        </configuration>
+                    </execution>
 
 					<!-- WordCountPOJO -->
 					<execution>
