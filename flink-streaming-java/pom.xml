@@ -98,6 +98,25 @@ under the License.
 							<goal>test-jar</goal>
 						</goals>
 					</execution>
+                    <execution>
+                        <id>RangePartitionTest</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>RangePartitionTest</classifier>
+                            <archive>
+                                <manifestEntries>
+                                    <program-class>org.apache.flink.streaming.runtime.partitioner.RangePartitionTest</program-class>
+                                </manifestEntries>
+                            </archive>
+                            <includes>
+                                <include>**/runtime/partitioner/RangePartitionTest.class</include>
+                                <include>**/runtime/partitioner/RangePartitionTest$*.class</include>
+                            </includes>
+                        </configuration>
+                    </execution>
 				</executions>
 			</plugin>
 
