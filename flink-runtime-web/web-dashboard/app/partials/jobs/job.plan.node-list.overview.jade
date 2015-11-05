@@ -22,10 +22,10 @@ table.table.table-body-hover.table-clickable.table-activable
       th End Time
       th Duration
       th Name
-      th Bytes read
-      th Records read
-      th Bytes written
-      th Records written
+      th Bytes received
+      th Records received
+      th Bytes sent
+      th Records sent
       th Tasks
       th Status
 
@@ -39,10 +39,10 @@ table.table.table-body-hover.table-clickable.table-activable
         span(ng-if="v.duration > -1") {{ v.duration }} ms
 
       td.td-long {{ v.name | humanizeText }}
-      td {{ v.metrics['read-bytes'] }}
-      td {{ v.metrics['read-records'] }}
-      td {{ v.metrics['write-bytes'] }}
-      td {{ v.metrics['write-records'] }}
+      td {{ v.metrics['read-bytes'] | number }}
+      td {{ v.metrics['read-records'] | number }}
+      td {{ v.metrics['write-bytes'] | number }}
+      td {{ v.metrics['write-records'] | number }}
       td
         .label-group
           bs-label(status="{{status}}" ng-repeat="(index, status) in stateList") {{v.tasks[status]}}

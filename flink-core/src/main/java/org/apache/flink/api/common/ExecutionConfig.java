@@ -246,9 +246,9 @@ public class ExecutionConfig implements Serializable {
 	public int getNumberOfExecutionRetries() {
 		return numberOfExecutionRetries;
 	}
-	
+
 	/**
-	 * @return The delay between retires.
+	 * Returns the delay between execution retries.
 	 */
 	public long getExecutionRetryDelay() {
 		return executionRetryDelay;
@@ -269,9 +269,9 @@ public class ExecutionConfig implements Serializable {
 		this.numberOfExecutionRetries = numberOfExecutionRetries;
 		return this;
 	}
-	
+
 	/**
-	 * Sets the delay between executions. A value of {@code -1} indicates that the default value 
+	 * Sets the delay between executions. A value of {@code -1} indicates that the default value
 	 * should be used.
 	 * @param executionRetryDelay The number of milliseconds the system will wait to retry.
 	 */
