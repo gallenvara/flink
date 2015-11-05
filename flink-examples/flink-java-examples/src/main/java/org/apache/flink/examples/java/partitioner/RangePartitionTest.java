@@ -47,7 +47,7 @@ public class RangePartitionTest {
 			}
 		}, "/testInput/input1.txt");*/
 		DataSet<Integer> output = dataSet.partitionByRange(1).mapPartition(new StringMapper());
-		output.writeAsText("file:///testdata/output1.txt", FileSystem.WriteMode.OVERWRITE);
+		output.writeAsText("/root/rangePartitionTest/output", FileSystem.WriteMode.OVERWRITE);
 		env.setParallelism(4);
 		env.execute("range Partition");
 	}
