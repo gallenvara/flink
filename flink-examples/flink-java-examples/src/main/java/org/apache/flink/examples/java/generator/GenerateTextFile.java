@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.test.generator;
+package org.apache.flink.examples.java.generator;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.flink.api.common.functions.FlatMapFunction;
@@ -24,7 +24,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.util.Collector;
-import java.util.Random;
 
 /**
  * Generates texts.

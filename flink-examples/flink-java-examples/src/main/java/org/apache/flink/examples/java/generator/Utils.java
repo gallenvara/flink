@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.test.generator;
+package org.apache.flink.examples.java.generator;
 
 
 import org.apache.commons.math3.random.RandomDataGenerator;
