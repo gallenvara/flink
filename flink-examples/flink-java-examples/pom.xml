@@ -223,6 +223,26 @@ under the License.
 						</configuration>
 					</execution>
 
+                    <!-- RangePartitionTest -->
+                    <execution>
+                        <id>RangePartitionTest</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>RangePartitionTest</classifier>
+                            <archive>
+                                <manifestEntries>
+                                    <program-class>org.apache.flink.examples.java.partitioner.RangePartitionTest</program-class>
+                                </manifestEntries>
+                            </archive>
+                            <includes>
+                                <include>**/java/partitioner/*</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+
 					<!-- WordCount -->
 					<execution>
 						<id>WordCount</id>
