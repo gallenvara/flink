@@ -19,6 +19,7 @@
 package org.apache.flink.examples.java.partitioner;
 
 import org.apache.flink.api.common.functions.MapPartitionFunction;
+import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -46,9 +47,10 @@ public class RangePartitionTest {
 				return integerLongStringTuple3;
 			}
 		}, "/testInput/input1.txt");*/
-		DataSet<Integer> output = dataSet.partitionByRange(1).mapPartition(new StringMapper());
+		//DataSet<Integer> output = dataSet.partitionByRange(1).mapPartition(new StringMapper());
+		DataSet<Tuple3<String, Integer, Long>> output = dataSet.partitionByRange(2).sortPartition(1, Order.DESCENDING);
 		output.writeAsText("hdfs://HadoopMaster:9000/gaolun/output", FileSystem.WriteMode.OVERWRITE);
-		env.setParallelism(4);
+		env.setParallelism(24);
 		env.execute("range Partition");
 	}
 
