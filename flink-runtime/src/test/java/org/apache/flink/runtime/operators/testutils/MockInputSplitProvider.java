@@ -51,7 +51,7 @@ public class MockInputSplitProvider implements InputSplitProvider {
 	 * Generates a set of input splits from an input path
 	 * 
 	 * @param path
-	 *        the path of the local file to generate the input splits from
+	 *        the path of the local file to partitioner the input splits from
 	 * @param noSplits
 	 *        the number of input splits to be generated from the given input file
 	 */

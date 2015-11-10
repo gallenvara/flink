@@ -72,7 +72,7 @@ public class PoissonSampler<T> extends RandomSampler<T> {
 	}
 	
 	/**
-	 * Sample the input elements, for each input element, generate its count following a poisson
+	 * Sample the input elements, for each input element, partitioner its count following a poisson
 	 * distribution.
 	 *
 	 * @param input Elements to be sampled.

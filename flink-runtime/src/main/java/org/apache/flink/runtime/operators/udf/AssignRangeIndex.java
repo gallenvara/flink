@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * This mapPartition function require a DataSet with RangeBoundaries as broadcast input, it
- * generate Tuple2 which includes range index and record itself as output.
+ * partitioner Tuple2 which includes range index and record itself as output.
  *
  * @param <IN> The original data type.
  */

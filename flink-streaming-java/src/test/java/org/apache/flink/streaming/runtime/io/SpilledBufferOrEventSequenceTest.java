@@ -245,7 +245,7 @@ public class SpilledBufferOrEventSequenceTest {
 
 			final ArrayList<BufferOrEvent> events = new ArrayList<BufferOrEvent>(128);
 
-			// generate sequence
+			// partitioner sequence
 			
 			for (int i = 0; i < numEventsAndBuffers; i++) {
 				boolean isEvent = rnd.nextDouble() < 0.05d;
@@ -315,7 +315,7 @@ public class SpilledBufferOrEventSequenceTest {
 			final ArrayList<BufferOrEvent> events1 = new ArrayList<BufferOrEvent>(128);
 			final ArrayList<BufferOrEvent> events2 = new ArrayList<BufferOrEvent>(128);
 
-			// generate sequence 1
+			// partitioner sequence 1
 
 			for (int i = 0; i < numEventsAndBuffers1; i++) {
 				boolean isEvent = rnd.nextDouble() < 0.05d;
@@ -327,7 +327,7 @@ public class SpilledBufferOrEventSequenceTest {
 				}
 			}
 
-			// generate sequence 2
+			// partitioner sequence 2
 
 			for (int i = 0; i < numEventsAndBuffers2; i++) {
 				boolean isEvent = rnd.nextDouble() < 0.05d;

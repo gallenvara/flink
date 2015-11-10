@@ -187,7 +187,7 @@ public class KeyMapTest {
 				probabilities[numMaps - 1] = remainingProb;
 			}
 			
-			// ------ generate random elements ------
+			// ------ partitioner random elements ------
 			final long probSeed = rootRnd.nextLong();
 			final long keySeed = rootRnd.nextLong();
 			

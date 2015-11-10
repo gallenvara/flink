@@ -144,8 +144,8 @@ public abstract class SingleInputUdfOperator<IN, OUT, O extends SingleInputUdfOp
 	 *
 	 * <p>
 	 * <b>NOTE: Adding semantic information for functions is optional!
-	 * If used correctly, semantic information can help the Flink optimizer to generate more efficient execution plans.
-	 * However, incorrect semantic information can cause the optimizer to generate incorrect execution plans which compute wrong results!
+	 * If used correctly, semantic information can help the Flink optimizer to partitioner more efficient execution plans.
+	 * However, incorrect semantic information can cause the optimizer to partitioner incorrect execution plans which compute wrong results!
 	 * So be careful when adding semantic information.
 	 * </b>
 	 * </p>

@@ -107,7 +107,7 @@ public class FileChannelStreamsITCase {
 			final FileChannelInputView inView = new FileChannelInputView(reader, memManager, readMemory, outView.getBytesInLatestSegment());
 			generator.reset();
 			
-			// read and re-generate all records and compare them
+			// read and re-partitioner all records and compare them
 			Pair readPair = new Pair();
 			for (int i = 0; i < NUM_PAIRS_SHORT; i++) {
 				generator.next(pair);
@@ -151,7 +151,7 @@ public class FileChannelStreamsITCase {
 			final FileChannelInputView inView = new FileChannelInputView(reader, memManager, readMemory, outView.getBytesInLatestSegment());
 			generator.reset();
 			
-			// read and re-generate all records and compare them
+			// read and re-partitioner all records and compare them
 			Pair readPair = new Pair();
 			for (int i = 0; i < NUM_PAIRS_LONG; i++) {
 				generator.next(pair);
@@ -195,7 +195,7 @@ public class FileChannelStreamsITCase {
 			final FileChannelInputView inView = new FileChannelInputView(reader, memManager, readMemory, outView.getBytesInLatestSegment());
 			generator.reset();
 	
-			// read and re-generate all records and compare them
+			// read and re-partitioner all records and compare them
 			try {
 				Pair readPair = new Pair();
 				for (int i = 0; i < NUM_PAIRS_SHORT + 1; i++) {
@@ -245,7 +245,7 @@ public class FileChannelStreamsITCase {
 			final FileChannelInputView inView = new FileChannelInputView(reader, memManager, readMemory, outView.getBytesInLatestSegment());
 			generator.reset();
 			
-			// read and re-generate all records and compare them
+			// read and re-partitioner all records and compare them
 			Pair readPair = new Pair();
 			for (int i = 0; i < NUM_PAIRS_SHORT; i++) {
 				generator.next(pair);
@@ -289,7 +289,7 @@ public class FileChannelStreamsITCase {
 			final FileChannelInputView inView = new FileChannelInputView(reader, memManager, readMemory, outView.getBytesInLatestSegment());
 			generator.reset();
 			
-			// read and re-generate all records and compare them
+			// read and re-partitioner all records and compare them
 			Pair readPair = new Pair();
 			for (int i = 0; i < NUM_PAIRS_SHORT / 2; i++) {
 				generator.next(pair);

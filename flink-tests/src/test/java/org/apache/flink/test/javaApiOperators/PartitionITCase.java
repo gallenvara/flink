@@ -235,7 +235,7 @@ public class PartitionITCase extends MultipleProgramsTestBase {
 
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
-		// generate some number in parallel
+		// partitioner some number in parallel
 		DataSet<Long> ds = env.generateSequence(1,3000);
 		DataSet<Tuple2<Integer, Integer>> uniqLongs = ds
 				// introduce some partition skew by filtering

@@ -30,7 +30,7 @@ import org.apache.flink.api.common.InvalidProgramException;
 
 /**
  * This class defines Java annotations for semantic assertions that can be added to Flink functions.
- * Semantic annotations can help the Flink optimizer to generate more efficient execution plans for Flink programs.
+ * Semantic annotations can help the Flink optimizer to partitioner more efficient execution plans for Flink programs.
  * For example, a <i>ForwardedFields</i> assertion for a map-type function can be declared as:
  *
  * <pre>{@code
@@ -70,8 +70,8 @@ import org.apache.flink.api.common.InvalidProgramException;
  * </p>
  *
  * <b>NOTE: The use of semantic annotation is optional!
- * If used correctly, semantic annotations can help the Flink optimizer to generate more efficient execution plans.
- * However, incorrect semantic annotations can cause the optimizer to generate incorrect execution plans which compute wrong results!
+ * If used correctly, semantic annotations can help the Flink optimizer to partitioner more efficient execution plans.
+ * However, incorrect semantic annotations can cause the optimizer to partitioner incorrect execution plans which compute wrong results!
  * So be careful when adding semantic annotations.
  * </b>
  *
@@ -97,7 +97,7 @@ public class FunctionAnnotation {
 	 * or separate Strings ({@code {@literal @}ForwardedFields({"f2", "f3->f0", "f4"})}).
 	 *
 	 * <b>NOTE: The use of the ForwardedFields annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * However if used incorrectly, it can cause invalid plan choices and the computation of wrong results!
 	 * It is NOT required that all forwarded fields are declared, but all declarations must be correct.
 	 * </b>
@@ -132,7 +132,7 @@ public class FunctionAnnotation {
 	 * or separate Strings ({@code {@literal @}ForwardedFieldsFirst({"f2", "f3->f0", "f4"})}).
 	 *
 	 * <b>NOTE: The use of the ForwardedFieldsFirst annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * However if used incorrectly, it can cause invalid plan choices and the computation of wrong results!
 	 * It is NOT required that all forwarded fields are declared, but all declarations must be correct.
 	 * </b>
@@ -170,7 +170,7 @@ public class FunctionAnnotation {
 	 * or separate Strings ({@code {@literal @}ForwardedFieldsSecond({"f2", "f3->f0", "f4"})}).
 	 *
 	 * <b>NOTE: The use of the ForwardedFieldsSecond annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * However if used incorrectly, it can cause invalid plan choices and the computation of wrong results!
 	 * It is NOT required that all forwarded fields are declared, but all declarations must be correct.
 	 * </b>
@@ -194,7 +194,7 @@ public class FunctionAnnotation {
 	 * Hence, the NonForwardedFields annotation is inverse to the {@link org.apache.flink.api.java.functions.FunctionAnnotation.ForwardedFields} annotation.
 	 *
 	 * <b>NOTE: The use of the NonForwardedFields annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * However if used incorrectly, it can cause invalid plan choices and the computation of wrong results!
 	 * Since all not declared fields are considered to be forwarded, it is required that ALL non-forwarded fields are declared.
 	 * </b>
@@ -224,7 +224,7 @@ public class FunctionAnnotation {
 	 * Hence, the NonForwardedFieldsFirst annotation is inverse to the {@link org.apache.flink.api.java.functions.FunctionAnnotation.ForwardedFieldsFirst} annotation.
 	 *
 	 * <b>NOTE: The use of the NonForwardedFieldsFirst annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * However if used incorrectly, it can cause invalid plan choices and the computation of wrong results!
 	 * Since all not declared fields are considered to be forwarded, it is required that ALL non-forwarded fields of the first input are declared.
 	 * </b>
@@ -256,7 +256,7 @@ public class FunctionAnnotation {
 	 * Hence, the NonForwardedFieldsSecond annotation is inverse to the {@link org.apache.flink.api.java.functions.FunctionAnnotation.ForwardedFieldsSecond} annotation.
 	 *
 	 * <b>NOTE: The use of the NonForwardedFieldsSecond annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * However if used incorrectly, it can cause invalid plan choices and the computation of wrong results!
 	 * Since all not declared fields are considered to be forwarded, it is required that ALL non-forwarded fields of the second input are declared.
 	 * </b>
@@ -288,7 +288,7 @@ public class FunctionAnnotation {
 	 * Fields which are only unmodified copied to the output without evaluating their values are NOT considered to be read.
 	 *
 	 * <b>NOTE: The use of the ReadFields annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * The ReadFields annotation requires that ALL read fields are declared.
 	 * Otherwise, it can cause invalid plan choices and the computation of wrong results!
 	 * Declaring a non-read field as read is not harmful but might reduce optimization potential.
@@ -317,7 +317,7 @@ public class FunctionAnnotation {
 	 * Fields which are only unmodified copied to the output without evaluating their values are NOT considered to be read.
 	 *
 	 * <b>NOTE: The use of the ReadFieldsFirst annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * The ReadFieldsFirst annotation requires that ALL read fields of the first input are declared.
 	 * Otherwise, it can cause invalid plan choices and the computation of wrong results!
 	 * Declaring a non-read field as read is not harmful but might reduce optimization potential.
@@ -347,7 +347,7 @@ public class FunctionAnnotation {
 	 * Fields which are only unmodified copied to the output without evaluating their values are NOT considered to be read.
 	 *
 	 * <b>NOTE: The use of the ReadFieldsSecond annotation is optional.
-	 * If used correctly, it can help the Flink optimizer to generate more efficient execution plans.
+	 * If used correctly, it can help the Flink optimizer to partitioner more efficient execution plans.
 	 * The ReadFieldsSecond annotation requires that ALL read fields of the second input are declared.
 	 * Otherwise, it can cause invalid plan choices and the computation of wrong results!
 	 * Declaring a non-read field as read is not harmful but might reduce optimization potential.

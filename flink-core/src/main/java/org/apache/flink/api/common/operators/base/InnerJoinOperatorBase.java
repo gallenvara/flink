@@ -93,7 +93,7 @@ public class InnerJoinOperatorBase<IN1, IN2, OUT, FT extends FlatJoinFunction<IN
 			leftComparator = ((CompositeType<IN1>) leftInformation).createComparator(keyPositions, orders, 0, executionConfig);
 		} else {
 			throw new RuntimeException("Type information for left input of type " + leftInformation.getClass()
-					.getCanonicalName() + " is not supported. Could not generate a comparator.");
+					.getCanonicalName() + " is not supported. Could not partitioner a comparator.");
 		}
 
 		if (rightInformation instanceof AtomicType) {
@@ -106,7 +106,7 @@ public class InnerJoinOperatorBase<IN1, IN2, OUT, FT extends FlatJoinFunction<IN
 			rightComparator = ((CompositeType<IN2>) rightInformation).createComparator(keyPositions, orders, 0, executionConfig);
 		} else {
 			throw new RuntimeException("Type information for right input of type " + rightInformation.getClass()
-					.getCanonicalName() + " is not supported. Could not generate a comparator.");
+					.getCanonicalName() + " is not supported. Could not partitioner a comparator.");
 		}
 
 		TypePairComparator<IN1, IN2> pairComparator = new GenericPairComparator<IN1, IN2>(leftComparator, rightComparator);

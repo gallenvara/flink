@@ -128,7 +128,7 @@ public class AccumulatorLiveITCase {
 		jobManagerGateway = testingCluster.getLeaderGateway(TestingUtils.TESTING_DURATION());
 		taskManager = testingCluster.getTaskManagersAsJava().get(0);
 
-		// generate test data
+		// partitioner test data
 		for (int i=0; i < NUM_ITERATIONS; i++) {
 			inputData.add(i, String.valueOf(i+1));
 		}
@@ -427,7 +427,7 @@ public class AccumulatorLiveITCase {
 	}
 
 	/**
-	 * Helpers to generate the JobGraph
+	 * Helpers to partitioner the JobGraph
 	 */
 	private static JobGraph getOptimizedPlan(Plan plan) {
 		Optimizer pc = new Optimizer(new DataStatistics(), new Configuration());

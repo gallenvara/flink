@@ -376,7 +376,7 @@ under the License.
 					<failOnNoGitDirectory>false</failOnNoGitDirectory>
 					<generateGitPropertiesFilename>src/main/resources/.version.properties</generateGitPropertiesFilename>
 					<gitDescribe>
-						<!-- don't generate the describe property -->
+						<!-- don't partitioner the describe property -->
 						<skip>true</skip>
 					</gitDescribe>
 				</configuration>

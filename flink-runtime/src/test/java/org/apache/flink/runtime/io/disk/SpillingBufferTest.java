@@ -109,7 +109,7 @@ public class SpillingBufferTest {
 		DataInputView inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		final Tuple2<Integer, String> readRec = new Tuple2<>();
 		for (int i = 0; i < NUM_PAIRS_INMEM; i++) {
 			generator.next(rec);
@@ -128,7 +128,7 @@ public class SpillingBufferTest {
 		inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		for (int i = 0; i < NUM_PAIRS_INMEM; i++) {
 			generator.next(rec);
 			serializer.deserialize(readRec, inView);
@@ -169,7 +169,7 @@ public class SpillingBufferTest {
 		DataInputView inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		final Tuple2<Integer, String> readRec = new Tuple2<>();
 		try {
 			for (int i = 0; i < NUM_PAIRS_INMEM + 1; i++) {
@@ -194,7 +194,7 @@ public class SpillingBufferTest {
 		inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		for (int i = 0; i < NUM_PAIRS_INMEM; i++) {
 			generator.next(rec);
 			serializer.deserialize(readRec, inView);
@@ -237,7 +237,7 @@ public class SpillingBufferTest {
 		DataInputView inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		final Tuple2<Integer, String> readRec = new Tuple2<>();
 		for (int i = 0; i < NUM_PAIRS_EXTERNAL; i++) {
 			generator.next(rec);
@@ -256,7 +256,7 @@ public class SpillingBufferTest {
 		inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		for (int i = 0; i < NUM_PAIRS_EXTERNAL; i++) {
 			generator.next(rec);
 			serializer.deserialize(readRec, inView);
@@ -297,7 +297,7 @@ public class SpillingBufferTest {
 		DataInputView inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		final Tuple2<Integer, String> readRec = new Tuple2<>();
 		try {
 			for (int i = 0; i < NUM_PAIRS_EXTERNAL + 1; i++) {
@@ -322,7 +322,7 @@ public class SpillingBufferTest {
 		inView = outView.flip();
 		generator.reset();
 		
-		// read and re-generate all records and compare them
+		// read and re-partitioner all records and compare them
 		for (int i = 0; i < NUM_PAIRS_EXTERNAL; i++) {
 			generator.next(rec);
 			serializer.deserialize(readRec, inView);

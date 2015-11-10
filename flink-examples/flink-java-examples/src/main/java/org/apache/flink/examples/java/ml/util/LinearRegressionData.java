@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class LinearRegressionData {
 
-	// We have the data as object arrays so that we can also generate Scala Data
+	// We have the data as object arrays so that we can also partitioner Scala Data
 	// Sources from it.
 	public static final Object[][] PARAMS = new Object[][] { new Object[] {
 			0.0, 0.0 } };

@@ -135,7 +135,7 @@ public class JsonPlanGenerator {
 			return writer.toString();
 		}
 		catch (Exception e) {
-			throw new RuntimeException("Failed to generate plan", e);
+			throw new RuntimeException("Failed to partitioner plan", e);
 		}
 	}
 }

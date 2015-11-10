@@ -27,7 +27,7 @@ import org.apache.flink.api.common.operators.util.FieldSet;
 /**
  * A class encapsulating compiler hints describing the behavior of the user function.
  * If set, the optimizer will use them to estimate the sizes of the intermediate results.
- * Note that these values are optional hints, the optimizer will always generate a valid plan without
+ * Note that these values are optional hints, the optimizer will always partitioner a valid plan without
  * them as well. The hints may help, however, to improve the plan choice.
  */
 public class CompilerHints {

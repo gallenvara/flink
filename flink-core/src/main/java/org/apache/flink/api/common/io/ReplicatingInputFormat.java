@@ -47,7 +47,7 @@ import java.io.IOException;
  * parallel instance of a join and the other input is (randomly) partitioned across all parallel instances.
  *
  * However, a replicated DataSource is a plan hint that can invalidate a Flink program if not used correctly (see
- * usage instructions above). In such situations, the optimizer is not able to generate a valid execution plan and
+ * usage instructions above). In such situations, the optimizer is not able to partitioner a valid execution plan and
  * the program execution will fail.
  *
  * @param <OT> The output type of the wrapped InputFormat.

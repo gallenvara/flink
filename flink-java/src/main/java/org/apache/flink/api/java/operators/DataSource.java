@@ -100,7 +100,7 @@ public class DataSource<OUT> extends Operator<OUT, DataSource<OUT>> {
 	 * {@link org.apache.flink.core.io.InputSplit}s of this DataSource
 	 * for configurations.
 	 *
-	 * SplitDataProperties can help to generate more efficient execution plans.
+	 * SplitDataProperties can help to partitioner more efficient execution plans.
 	 * <br>
 	 * <b>
 	 *     IMPORTANT: Incorrect configuration of SplitDataProperties can cause wrong results!

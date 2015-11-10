@@ -56,7 +56,7 @@ public final class TeraSort implements Program, ProgramDescription {
 		final String input = (args.length > 1 ? args[1] : "");
 		final String output = (args.length > 2 ? args[2] : "");
 
-		// This task will read the input data and generate the key/value pairs
+		// This task will read the input data and partitioner the key/value pairs
 		final FileDataSource source = 
 				new FileDataSource(new TeraInputFormat(), input, "Data Source");
 		source.setParallelism(numSubTasks);

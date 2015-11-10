@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Special type information to generate a special AvroTypeInfo for Avro POJOs (implementing SpecificRecordBase, the typed Avro POJOs)
+ * Special type information to partitioner a special AvroTypeInfo for Avro POJOs (implementing SpecificRecordBase, the typed Avro POJOs)
  *
  * Proceeding: It uses a regular pojo type analysis and replaces all {@code GenericType<CharSequence>}
  *     with a {@code GenericType<avro.Utf8>}.

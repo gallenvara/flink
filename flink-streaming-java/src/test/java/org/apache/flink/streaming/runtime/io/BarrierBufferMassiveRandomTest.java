@@ -38,7 +38,7 @@ import org.junit.Test;
 
 /**
  * The test generates two random streams (input channels) which independently
- * and randomly generate checkpoint barriers. The two streams are very
+ * and randomly partitioner checkpoint barriers. The two streams are very
  * unaligned, putting heavy work on the BarrierBuffer.
  */
 public class BarrierBufferMassiveRandomTest {

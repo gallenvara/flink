@@ -50,7 +50,7 @@ public class BlobServer extends Thread implements BlobService {
 	/** The log object used for debugging. */
 	private static final Logger LOG = LoggerFactory.getLogger(BlobServer.class);
 
-	/** Counter to generate unique names for temporary files. */
+	/** Counter to partitioner unique names for temporary files. */
 	private final AtomicInteger tempFileCounter = new AtomicInteger(0);
 
 	/** The server socket listening for incoming connections. */

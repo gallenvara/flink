@@ -134,7 +134,7 @@ public class BufferSpillerTest {
 				
 				final ArrayList<BufferOrEvent> events = new ArrayList<BufferOrEvent>(128);
 
-				// generate sequence
+				// partitioner sequence
 				for (int i = 0; i < numEventsAndBuffers; i++) {
 					boolean isEvent = rnd.nextDouble() < 0.05d;
 					if (isEvent) {

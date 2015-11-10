@@ -49,7 +49,7 @@ public class KMeansDataGenerator {
 	private static final char DELIMITER = ' ';
 
 	/**
-	 * Main method to generate data for the {@link KMeans} example program.
+	 * Main method to partitioner data for the {@link KMeans} example program.
 	 * <p>
 	 * The generator creates to files:
 	 * <ul>
@@ -104,7 +104,7 @@ public class KMeansDataGenerator {
 			int nextCentroid = 0;
 			
 			for (int i = 1; i <= numDataPoints; i++) {
-				// generate a point for the current centroid
+				// partitioner a point for the current centroid
 				double[] centroid = means[nextCentroid];
 				for (int d = 0; d < DIMENSIONALITY; d++) {
 					point[d] = (random.nextGaussian() * absoluteStdDev) + centroid[d];

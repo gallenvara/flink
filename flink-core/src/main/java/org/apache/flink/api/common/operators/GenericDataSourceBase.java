@@ -165,7 +165,7 @@ public class GenericDataSourceBase<OUT, T extends InputFormat<OUT, ?>> extends O
 
 	/**
 	 * Sets properties of input splits for this data source.
-	 * Split properties can help to generate more efficient execution plans.
+	 * Split properties can help to partitioner more efficient execution plans.
 	 * <br>
 	 * <b>
 	 *     IMPORTANT: Providing wrong split data properties can cause wrong results!

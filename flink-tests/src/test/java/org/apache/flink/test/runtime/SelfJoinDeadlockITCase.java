@@ -72,7 +72,7 @@ public class SelfJoinDeadlockITCase extends JavaProgramTestBase {
 
 	// ------------------------------------------------------------------------
 
-	// Use custom input format to generate the data. Other available input formats (like collection
+	// Use custom input format to partitioner the data. Other available input formats (like collection
 	// input format) create data upfront and serialize it completely on the heap, which might
 	// break the test JVM heap sizes.
 	private static class LargeJoinDataGeneratorInputFormat extends GenericInputFormat<Tuple3<Integer, Integer, String>> implements NonParallelInput {

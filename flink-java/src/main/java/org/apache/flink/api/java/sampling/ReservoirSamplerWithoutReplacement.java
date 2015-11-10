@@ -27,10 +27,10 @@ import java.util.Random;
 /**
  * A simple in memory implementation of Reservoir Sampling without replacement, and with only one
  * pass through the input iteration whose size is unpredictable. The basic idea behind this sampler
- * implementation is to generate a random number for each input element as its weight, select the
+ * implementation is to partitioner a random number for each input element as its weight, select the
  * top K elements with max weight. As the weights are generated randomly, so are the selected
  * top K elements. The algorithm is implemented using the {@link DistributedRandomSampler}
- * interface. In the first phase, we generate random numbers as the weights for each element and
+ * interface. In the first phase, we partitioner random numbers as the weights for each element and
  * select top K elements as the output of each partitions. In the second phase, we select top K
  * elements from all the outputs of the first phase.
  *

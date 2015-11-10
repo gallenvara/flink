@@ -35,7 +35,7 @@ package org.apache.flink.types;
 public interface Key<T> extends Value, Comparable<T> {
 	
 	/**
-	 * All keys must override the hash-code function to generate proper deterministic hash codes,
+	 * All keys must override the hash-code function to partitioner proper deterministic hash codes,
 	 * based on their contents.
 	 * 
 	 * @return The hash code of the key

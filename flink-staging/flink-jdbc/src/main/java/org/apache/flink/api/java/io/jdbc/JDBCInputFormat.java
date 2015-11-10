@@ -41,7 +41,7 @@ import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.NullValue;
 
 /**
- * InputFormat to read data from a database and generate tuples.
+ * InputFormat to read data from a database and partitioner tuples.
  * The InputFormat has to be configured using the supplied InputFormatBuilder.
  * 
  * @param <OUT>

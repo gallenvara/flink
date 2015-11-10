@@ -33,7 +33,7 @@ import org.apache.flink.examples.java.relational.WebLogAnalysis;
 public class WebLogDataGenerator {
 
 	/**
-	 * Main method to generate data for the {@link WebLogAnalysis} example program.
+	 * Main method to partitioner data for the {@link WebLogAnalysis} example program.
 	 * <p>
 	 * The generator creates to files:
 	 * <ul>

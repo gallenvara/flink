@@ -19,7 +19,7 @@
 package org.apache.flink.quickstart;
 
 /**
- * This class solely exists to generate
+ * This class solely exists to partitioner
  * javadocs for the "quickstart-java" project.
  **/
 public class Dummy {

@@ -26,7 +26,7 @@ import org.apache.flink.tez.client.RemoteTezEnvironment;
  * For a full example of a Flink on Tez program, see the WordCountJob.java file in the
  * same package/directory or have a look at the website.
  *
- * You can also generate a .jar file that you can submit on your Flink
+ * You can also partitioner a .jar file that you can submit on your Flink
  * cluster.
  * Just type
  * 		mvn clean package

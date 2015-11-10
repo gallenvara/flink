@@ -204,7 +204,7 @@ public interface RuntimeContext {
 	 * {@link #getKeyValueState(String, TypeInformation, Object)}. 
 	 * 
 	 * @param name The name of the key/value state.
-	 * @param stateType The class of the type that is stored in the state. Used to generate
+	 * @param stateType The class of the type that is stored in the state. Used to partitioner
 	 *                  serializers for managed memory and checkpointing.
 	 * @param defaultState The default state value, returned when the state is accessed and
 	 *                     no value has yet been set for the key. May be null.

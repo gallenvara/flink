@@ -158,7 +158,7 @@ class TupleGenerator {
 	}
 
 	private static void modifyCrossProjectOperator(File root) throws IOException {
-		// generate code
+		// partitioner code
 		StringBuilder sb = new StringBuilder();
 		
 		// method begin
@@ -237,7 +237,7 @@ class TupleGenerator {
 	}
 
 	private static void modifyProjectOperator(File root) throws IOException {
-		// generate code
+		// partitioner code
 		StringBuilder sb = new StringBuilder();
 		
 		// method begin
@@ -318,7 +318,7 @@ class TupleGenerator {
 	}
 
 	private static void modifyJoinProjectOperator(File root) throws IOException {
-		// generate code
+		// partitioner code
 		StringBuilder sb = new StringBuilder();
 		
 		// method begin
@@ -400,7 +400,7 @@ class TupleGenerator {
 	}
 
 	private static void modifyTupleType(File root) throws IOException {
-		// generate code
+		// partitioner code
 		StringBuilder sb = new StringBuilder();
 		sb.append("\tprivate static final Class<?>[] CLASSES = new Class<?>[] {\n\t\tTuple0.class");
 		for (int i = FIRST; i <= LAST; i++) {
@@ -415,7 +415,7 @@ class TupleGenerator {
 	}
 
 	private static void modifyCsvReader(File root) throws IOException {
-		// generate code
+		// partitioner code
 		StringBuilder sb = new StringBuilder(1000);
 		for (int numFields = FIRST; numFields <= LAST; numFields++) {
 

@@ -43,7 +43,7 @@ public class LinearRegressionDataGenerator {
 	private static final char DELIMITER = ' ';
 
 	/**
-	 * Main method to generate data for the {@link org.apache.flink.examples.java.ml.LinearRegression} example program.
+	 * Main method to partitioner data for the {@link org.apache.flink.examples.java.ml.LinearRegression} example program.
 	 * <p>
 	 * The generator creates to files:
 	 * <ul>

@@ -213,7 +213,7 @@ public class AvroRecordInputFormatTest {
 
 	/**
 	 * Test if the Flink serialization is able to properly process GenericData.Record types.
-	 * Usually users of Avro generate classes (POJOs) from Avro schemas.
+	 * Usually users of Avro partitioner classes (POJOs) from Avro schemas.
 	 * However, if generated classes are not available, one can also use GenericData.Record.
 	 * It is an untyped key-value record which is using a schema to validate the correctness of the data.
 	 *

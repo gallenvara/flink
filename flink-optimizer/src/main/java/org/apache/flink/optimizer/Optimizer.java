@@ -492,7 +492,7 @@ public class Optimizer {
 					"track the re-joining of branches correctly.");
 		}
 
-		// the final step is now to generate the actual plan alternatives
+		// the final step is now to partitioner the actual plan alternatives
 		List<PlanNode> bestPlan = rootNode.getAlternativePlans(this.costEstimator);
 
 		if (bestPlan.size() != 1) {
@@ -527,7 +527,7 @@ public class Optimizer {
 	 * This function performs only the first step to the compilation process - the creation of the optimizer
 	 * representation of the plan. No estimations or enumerations of alternatives are done here.
 	 * 
-	 * @param program The plan to generate the optimizer representation for.
+	 * @param program The plan to partitioner the optimizer representation for.
 	 * @return The optimizer representation of the plan, as a collection of all data sinks
 	 *         from the plan can be traversed.
 	 */

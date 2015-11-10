@@ -39,7 +39,7 @@ import org.apache.flink.types.parser.FieldParser;
 import java.io.IOException;
 
 /**
- * Input format to parse text files and generate Records. 
+ * Input format to parse text files and partitioner Records. 
  * The input file is structured by record delimiters and field delimiters (CSV files are common).
  * Record delimiter separate records from each other ('\n' is common).
  * Field delimiters separate fields within a record. 

@@ -44,7 +44,7 @@ import java.util.List;
 
 /**
  * Base operator for the combineGroup transformation. It receives the UDF GroupCombineFunction as an input.
- * This class is later processed by the compiler to generate the plan.
+ * This class is later processed by the compiler to partitioner the plan.
  * @see org.apache.flink.api.common.functions.CombineFunction
  */
 public class GroupCombineOperatorBase<IN, OUT, FT extends GroupCombineFunction<IN, OUT>> extends SingleInputOperator<IN, OUT, FT> {

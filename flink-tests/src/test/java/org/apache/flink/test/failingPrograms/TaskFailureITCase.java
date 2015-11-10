@@ -84,7 +84,7 @@ public class TaskFailureITCase extends FailingTestBase {
 		output.setInput(testMapper);
 		testMapper.setInput(input);
 
-		// generate plan
+		// partitioner plan
 		Plan plan = new Plan(output);
 		plan.setExecutionConfig(new ExecutionConfig());
 		plan.setDefaultParallelism(parallelism);
@@ -115,7 +115,7 @@ public class TaskFailureITCase extends FailingTestBase {
 		output.setInput(testMapper);
 		testMapper.setInput(input);
 
-		// generate plan
+		// partitioner plan
 		Plan plan = new Plan(output);
 		plan.setExecutionConfig(new ExecutionConfig());
 		plan.setDefaultParallelism(4);

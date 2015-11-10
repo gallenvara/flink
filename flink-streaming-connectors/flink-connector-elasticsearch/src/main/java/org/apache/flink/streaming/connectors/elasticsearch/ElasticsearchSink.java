@@ -142,7 +142,7 @@ public class ElasticsearchSink<T> extends RichSinkFunction<T> {
 	 * Creates a new ElasticsearchSink that connects to the cluster using an embedded Node.
 	 *
 	 * @param userConfig The map of user settings that are passed when constructing the Node and BulkProcessor
-	 * @param indexRequestBuilder This is used to generate the IndexRequest from the incoming element
+	 * @param indexRequestBuilder This is used to partitioner the IndexRequest from the incoming element
 	 */
 	public ElasticsearchSink(Map<String, String> userConfig, IndexRequestBuilder<T> indexRequestBuilder) {
 		this.userConfig = userConfig;
@@ -155,7 +155,7 @@ public class ElasticsearchSink<T> extends RichSinkFunction<T> {
 	 *
 	 * @param userConfig The map of user settings that are passed when constructing the TransportClient and BulkProcessor
 	 * @param transportNodes The Elasticsearch Nodes to which to connect using a {@code TransportClient}
-	 * @param indexRequestBuilder This is used to generate the IndexRequest from the incoming element
+	 * @param indexRequestBuilder This is used to partitioner the IndexRequest from the incoming element
 	 *
 	 */
 	public ElasticsearchSink(Map<String, String> userConfig, List<TransportAddress> transportNodes, IndexRequestBuilder<T> indexRequestBuilder) {

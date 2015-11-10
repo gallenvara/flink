@@ -127,7 +127,7 @@ public class OuterJoinOperatorBase<IN1, IN2, OUT, FT extends FlatJoinFunction<IN
 			comparator = ((CompositeType<T>) typeInformation).createComparator(keyPositions, orders, 0, executionConfig);
 		} else {
 			throw new RuntimeException("Type information for input of type " + typeInformation.getClass()
-					.getCanonicalName() + " is not supported. Could not generate a comparator.");
+					.getCanonicalName() + " is not supported. Could not partitioner a comparator.");
 		}
 		return comparator;
 	}

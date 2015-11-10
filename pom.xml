@@ -483,7 +483,7 @@ under the License.
 				<plugins>
 
 					<!-- We need to clean compiled classes to make sure that genjavadoc
-					is called to generate our fake Java source from Scala source. -->
+					is called to partitioner our fake Java source from Scala source. -->
 					<plugin>
 						<artifactId>maven-clean-plugin</artifactId>
 						<version>2.5</version><!--$NO-MVN-MAN-VER$-->

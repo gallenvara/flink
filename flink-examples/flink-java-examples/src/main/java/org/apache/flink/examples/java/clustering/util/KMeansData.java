@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class KMeansData {
 
-	// We have the data as object arrays so that we can also generate Scala Data Sources from it.
+	// We have the data as object arrays so that we can also partitioner Scala Data Sources from it.
 	public static final Object[][] CENTROIDS = new Object[][] {
 		new Object[] {1, -31.85, -44.77},
 		new Object[]{2, 35.16, 17.46},

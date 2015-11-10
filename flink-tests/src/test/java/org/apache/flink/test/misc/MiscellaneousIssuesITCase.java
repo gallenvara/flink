@@ -126,7 +126,7 @@ public class MiscellaneousIssuesITCase {
 			env.setParallelism(5);
 			env.getConfig().disableSysoutLogging();
 
-			// generate two different flows
+			// partitioner two different flows
 			env.generateSequence(1, 10).output(new DiscardingOutputFormat<Long>());
 			env.generateSequence(1, 10).output(new DiscardingOutputFormat<Long>());
 

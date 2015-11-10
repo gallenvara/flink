@@ -169,7 +169,7 @@ public class RemoteEnvironment extends ExecutionEnvironment {
 
 		// make sure that we do not start an new executor here
 		// if one runs, fine, of not, we create a local executor (lightweight) and let it
-		// generate the plan
+		// partitioner the plan
 		if (executor != null) {
 			return executor.getOptimizerPlanAsJSON(p);
 		}

@@ -28,7 +28,7 @@ import java.util.Random;
  * A simple in memory implementation of Reservoir Sampling with replacement and with only one pass
  * through the input iteration whose size is unpredictable. The basic idea behind this sampler
  * implementation is quite similar to {@link ReservoirSamplerWithoutReplacement}. The main
- * difference is that, in the first phase, we generate weights for each element K times, so that
+ * difference is that, in the first phase, we partitioner weights for each element K times, so that
  * each element can get selected multiple times.
  *
  * This implementation refers to the algorithm described in <a href="researcher.ibm.com/files/us-dpwoodru/tw11.pdf">
@@ -93,7 +93,7 @@ public class ReservoirSamplerWithReplacement<T> extends DistributedRandomSampler
 
 		while (input.hasNext()) {
 			T element = input.next();
-			// To sample with replacement, we generate K random weights for each element, so that it's
+			// To sample with replacement, we partitioner K random weights for each element, so that it's
 			// possible to be selected multi times.
 			for (int i = 0; i < numSamples; i++) {
 				// If current element weight is larger than the smallest one in queue, remove the element
