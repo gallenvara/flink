@@ -26,6 +26,7 @@ import org.apache.flink.api.common.operators.util.FieldList;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeutils.TypeComparatorFactory;
+import org.apache.flink.runtime.io.network.DataExchangeMode;
 import org.apache.flink.runtime.operators.udf.AssignRangeIndex;
 import org.apache.flink.runtime.operators.udf.PartitionIDRemoveWrapper;
 import org.apache.flink.runtime.operators.udf.RangeBoundaryBuilder;
@@ -102,7 +103,7 @@ public class RangePartitionRewriter implements Visitor<PlanNode> {
 		final MapPartitionOperatorBase sipOperatorBase = new MapPartitionOperatorBase(sampleInPartition, sipOperatorInformation, "Sample in partitions");
 		final MapPartitionNode sipNode = new MapPartitionNode(sipOperatorBase);
 		final Channel sipChannel = new Channel(sourceNode, TempMode.NONE);
-		sipChannel.setShipStrategy(ShipStrategyType.FORWARD, channel.getDataExchangeMode());
+		sipChannel.setShipStrategy(ShipStrategyType.FORWARD, DataExchangeMode.BATCH);
 		final SingleInputPlanNode sipPlanNode = new SingleInputPlanNode(sipNode, "SampleInPartition PlanNode", sipChannel, DriverStrategy.MAP_PARTITION);
 		sipPlanNode.setParallelism(sourceParallelism);
 		sipChannel.setTarget(sipPlanNode);
