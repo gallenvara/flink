@@ -103,7 +103,7 @@ public class RangePartitionRewriter implements Visitor<PlanNode> {
 		final MapPartitionOperatorBase sipOperatorBase = new MapPartitionOperatorBase(sampleInPartition, sipOperatorInformation, "Sample in partitions");
 		final MapPartitionNode sipNode = new MapPartitionNode(sipOperatorBase);
 		final Channel sipChannel = new Channel(sourceNode, TempMode.NONE);
-		sipChannel.setShipStrategy(ShipStrategyType.FORWARD, DataExchangeMode.BATCH);
+		sipChannel.setShipStrategy(ShipStrategyType.FORWARD, DataExchangeMode.PIPELINED);
 		final SingleInputPlanNode sipPlanNode = new SingleInputPlanNode(sipNode, "SampleInPartition PlanNode", sipChannel, DriverStrategy.MAP_PARTITION);
 		sipPlanNode.setParallelism(sourceParallelism);
 		sipChannel.setTarget(sipPlanNode);
@@ -144,7 +144,8 @@ public class RangePartitionRewriter implements Visitor<PlanNode> {
 		final MapPartitionOperatorBase ariOperatorBase = new MapPartitionOperatorBase(assignRangeIndex, ariOperatorInformation, "Assign Range Index");
 		final MapPartitionNode ariNode = new MapPartitionNode(ariOperatorBase);
 		final Channel ariChannel = new Channel(sourceNode, TempMode.NONE);
-		ariChannel.setShipStrategy(ShipStrategyType.FORWARD, channel.getDataExchangeMode());
+		// To avoid deadlock, set the DataExchangeMode of channel between source node and this to Batch.
+		ariChannel.setShipStrategy(ShipStrategyType.FORWARD, DataExchangeMode.BATCH);
 		final SingleInputPlanNode ariPlanNode = new SingleInputPlanNode(ariNode, "AssignRangeIndex PlanNode", ariChannel, DriverStrategy.MAP_PARTITION);
 		ariPlanNode.setParallelism(sourceParallelism);
 		ariChannel.setTarget(ariPlanNode);
