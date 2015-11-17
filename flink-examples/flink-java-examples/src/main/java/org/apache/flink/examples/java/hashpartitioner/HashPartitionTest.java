@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.examples.java.partitioner;
+package org.apache.flink.examples.java.hashpartitioner;
 
 import org.apache.flink.api.common.functions.MapPartitionFunction;
 import org.apache.flink.api.common.operators.Order;
@@ -28,7 +28,7 @@ import org.apache.flink.util.Collector;
 
 import java.util.HashSet;
 
-public class RangePartitionTest {
+public class HashPartitionTest {
 
 	private static String InputFile;
 
@@ -48,7 +48,7 @@ public class RangePartitionTest {
 			}
 		}, "/testInput/input1.txt");*/
 		//DataSet<Integer> output = dataSet.partitionByRange(1).mapPartition(new StringMapper());
-		DataSet<Tuple3<String, Integer, Long>> output = dataSet.partitionByRange(2).sortPartition(1, Order.DESCENDING);
+		DataSet<Tuple3<String, Integer, Long>> output = dataSet.partitionByHash(2).sortPartition(1, Order.DESCENDING);
 		output.writeAsText("hdfs://HadoopMaster:9000/gaolun/output", FileSystem.WriteMode.OVERWRITE);
 		env.setParallelism(20);
 		env.execute("range Partition");
@@ -56,8 +56,8 @@ public class RangePartitionTest {
 
 	public static void main(String[] args) throws Exception{
 		InputFile = args[0];
-		RangePartitionTest rangePartitionTest = new RangePartitionTest();
-		rangePartitionTest.testRangePartition();
+		HashPartitionTest hashPartitionTest = new HashPartitionTest();
+		hashPartitionTest.testRangePartition();
 	}
 
 	public static class StringMapper implements MapPartitionFunction<Tuple3<String, Integer, Long>, Integer> {

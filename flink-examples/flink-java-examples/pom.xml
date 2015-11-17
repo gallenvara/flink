@@ -197,6 +197,26 @@ under the License.
 							</includes>
 						</configuration>
 					</execution>
+                    
+                    <!-- HashPartitionTest -->
+                    <execution>
+                        <id>HashPartitionTest</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>HashPartitionTest</classifier>
+                            <archive>
+                                <manifestEntries>
+                                    <program-class>org.apache.flink.examples.java.hashpartitioner.HashPartitionTest</program-class>
+                                </manifestEntries>
+                            </archive>
+                            <includes>
+                                <include>**/java/hashpartitioner/*</include>
+                            </includes>
+                        </configuration>
+                    </execution>
 
 					<!-- WebLogAnalysis -->
 					<execution>
