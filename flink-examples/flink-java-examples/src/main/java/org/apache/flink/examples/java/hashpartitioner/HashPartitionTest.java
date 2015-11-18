@@ -35,8 +35,7 @@ public class HashPartitionTest {
 
 	public void testRangePartition() throws Exception {
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-		env.setParallelism(20);
-		DataSet<Tuple3<String, Integer, Long>> dataSet = env.readCsvFile(InputFile).fieldDelimiter(" ").lineDelimiter("\n").includeFields("111").types(String.class, Integer.class, Long.class);
+		DataSet<Tuple3<String, Integer, Long>> dataSet = env.readCsvFile(InputFile).fieldDelimiter(" ").lineDelimiter("\n").includeFields("111").types(String.class, Integer.class, Long.class).setParallelism(20);
 		/*DataSet<Tuple3<Integer, Long, String>> ds = env.readFile(new FileInputFormat<Tuple3<Integer, Long, String>>() {
 			@Override
 			public boolean reachedEnd() throws IOException {
@@ -49,8 +48,7 @@ public class HashPartitionTest {
 			}
 		}, "/testInput/input1.txt");*/
 		//DataSet<Integer> output = dataSet.partitionByRange(1).mapPartition(new StringMapper());
-		env.setParallelism(1);
-		DataSet<Tuple3<String, Integer, Long>> output = dataSet.partitionByHash(2).sortPartition(1, Order.DESCENDING);
+		DataSet<Tuple3<String, Integer, Long>> output = dataSet.partitionByHash(2).sortPartition(1, Order.DESCENDING).setParallelism(1);
 		output.writeAsText("hdfs://HadoopMaster:9000/gaolun/output", FileSystem.WriteMode.OVERWRITE);
 		env.execute("hash Partition");
 	}
