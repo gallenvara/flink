@@ -50,6 +50,7 @@ public class RangePartitionTest {
 			}
 		}, "/testInput/input1.txt");*/
 		//DataSet<Integer> output = dataSet.partitionByRange(1).mapPartition(new StringMapper());
+		env.setParallelism(sortParallelism);
 		DataSet<Tuple3<String, Integer, Long>> output = dataSet.partitionByRange(2).sortPartition(1, Order.DESCENDING).setParallelism(sortParallelism);
 		output.writeAsText("hdfs://HadoopMaster:9000/gaolun/output", FileSystem.WriteMode.OVERWRITE);
 		env.execute("range Partition");
