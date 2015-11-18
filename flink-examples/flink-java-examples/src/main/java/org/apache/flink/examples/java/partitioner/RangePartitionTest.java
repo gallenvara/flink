@@ -31,10 +31,13 @@ import java.util.HashSet;
 public class RangePartitionTest {
 
 	private static String InputFile;
+	
+	private static int sortParallelism;
 
 
 	public void testRangePartition() throws Exception {
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+		env.setParallelism(20);
 		DataSet<Tuple3<String, Integer, Long>> dataSet = env.readCsvFile(InputFile).fieldDelimiter(" ").lineDelimiter("\n").includeFields("111").types(String.class, Integer.class, Long.class);
 		/*DataSet<Tuple3<Integer, Long, String>> ds = env.readFile(new FileInputFormat<Tuple3<Integer, Long, String>>() {
 			@Override
@@ -48,14 +51,15 @@ public class RangePartitionTest {
 			}
 		}, "/testInput/input1.txt");*/
 		//DataSet<Integer> output = dataSet.partitionByRange(1).mapPartition(new StringMapper());
+		env.setParallelism(sortParallelism);
 		DataSet<Tuple3<String, Integer, Long>> output = dataSet.partitionByRange(2).sortPartition(1, Order.DESCENDING);
 		output.writeAsText("hdfs://HadoopMaster:9000/gaolun/output", FileSystem.WriteMode.OVERWRITE);
-		env.setParallelism(20);
 		env.execute("range Partition");
 	}
 
 	public static void main(String[] args) throws Exception{
 		InputFile = args[0];
+		sortParallelism = Integer.parseInt(args[1]);
 		RangePartitionTest rangePartitionTest = new RangePartitionTest();
 		rangePartitionTest.testRangePartition();
 	}
