@@ -26,6 +26,7 @@ import org.apache.flink.api.java.ExecutionEnvironmentFactory;
 import org.apache.flink.optimizer.DataStatistics;
 import org.apache.flink.optimizer.Optimizer;
 import org.apache.flink.optimizer.plan.OptimizedPlan;
+import org.apache.flink.optimizer.plandump.PlanDumpGenerator;
 import org.apache.flink.optimizer.plandump.PlanJSONDumpGenerator;
 import org.apache.flink.optimizer.plantranslate.JobGraphGenerator;
 import org.apache.flink.runtime.jobgraph.JobGraph;
@@ -75,6 +76,14 @@ public class TestEnvironment extends ExecutionEnvironment {
 
 		PlanJSONDumpGenerator jsonGen = new PlanJSONDumpGenerator();
 		return jsonGen.getOptimizerPlanAsJSON(op);
+	}
+
+	@Override
+	public String getSqlExecutionPlan(boolean extended) throws Exception {
+		OptimizedPlan op = compileProgram("unused");
+
+		PlanDumpGenerator jsonGen = new PlanDumpGenerator(true);
+		return jsonGen.getOptimizerPlan(op);
 	}
 
 

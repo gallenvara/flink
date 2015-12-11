@@ -829,6 +829,8 @@ public abstract class ExecutionEnvironment {
 	 */
 	public abstract String getExecutionPlan() throws Exception;
 	
+	public abstract String getSqlExecutionPlan(boolean boo) throws Exception;
+	
 	/**
 	 * Registers a file at the distributed cache under the given name. The file will be accessible
 	 * from any user-defined function in the (distributed) runtime under a local path. Files

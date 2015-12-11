@@ -340,6 +340,11 @@ public class JsonJobGraphGenerationTest {
 			throw new UnsupportedOperationException();
 		}
 		
+		@Override
+		public String getSqlExecutionPlan(boolean extended) throws Exception {
+			throw new UnsupportedOperationException();
+		}
+		
 		public static void setAsNext(final JsonValidator validator, final int defaultParallelism) {
 			initializeContextEnvironment(new ExecutionEnvironmentFactory() {
 				@Override

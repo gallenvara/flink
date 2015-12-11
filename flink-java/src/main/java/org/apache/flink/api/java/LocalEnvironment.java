@@ -106,6 +106,21 @@ public class LocalEnvironment extends ExecutionEnvironment {
 	}
 
 	@Override
+	public String getSqlExecutionPlan(boolean extended) throws Exception {
+		Plan p = createProgramPlan(null, false);
+
+		// make sure that we do not start an executor in any case here.
+		// if one runs, fine, or not, we only create the class but disregard immediately afterwards
+		if (executor != null) {
+			return executor.getOptimizerPlanContext(p, extended);
+		}
+		else {
+			PlanExecutor tempExecutor = PlanExecutor.createLocalExecutor(configuration);
+			return tempExecutor.getOptimizerPlanContext(p, extended);
+		}
+	}
+
+	@Override
 	public void startNewSession() throws Exception {
 		if (executor != null) {
 			// we need to end the previous session

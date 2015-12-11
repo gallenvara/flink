@@ -129,6 +129,8 @@ public abstract class PlanExecutor {
 	 */
 	public abstract String getOptimizerPlanAsJSON(Plan plan) throws Exception;
 
+	public abstract String getOptimizerPlanContext(Plan plan, boolean extended) throws Exception;
+
 	/**
 	 * Ends the job session, identified by the given JobID. Jobs can be kept around as sessions,
 	 * if a session timeout is specified. Keeping Jobs as sessions allows users to incrementally

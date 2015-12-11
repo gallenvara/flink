@@ -61,6 +61,15 @@ public class OptimizerPlanEnvironment extends ExecutionEnvironment {
 	}
 
 	@Override
+	public String getSqlExecutionPlan(boolean extended) throws Exception {
+		Plan plan = createProgramPlan(null, false);
+		this.optimizerPlan = compiler.compile(plan);
+
+		// do not go on with anything now!
+		throw new ProgramAbortException();
+	}
+
+	@Override
 	public void startNewSession() {
 		// do nothing
 	}

@@ -27,6 +27,7 @@ import org.apache.flink.api.common.PlanExecutor;
 import org.apache.flink.api.common.Program;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.optimizer.plandump.PlanDumpGenerator;
 import org.apache.flink.runtime.akka.AkkaUtils;
 import org.apache.flink.runtime.instance.ActorGateway;
 import org.apache.flink.runtime.jobgraph.JobGraph;
@@ -213,6 +214,17 @@ public class LocalExecutor extends PlanExecutor {
 		OptimizedPlan op = pc.compile(plan);
 
 		return new PlanJSONDumpGenerator().getOptimizerPlanAsJSON(op);
+	}
+
+	@Override
+	public String getOptimizerPlanContext(Plan plan, boolean extended) throws Exception {
+		final int parallelism = plan.getDefaultParallelism() == -1 ? 1 : plan.getDefaultParallelism();
+
+		Optimizer pc = new Optimizer(new DataStatistics(), this.configuration);
+		pc.setDefaultParallelism(parallelism);
+		OptimizedPlan op = pc.compile(plan);
+
+		return new PlanDumpGenerator(extended).getOptimizerPlan(op);
 	}
 
 	@Override

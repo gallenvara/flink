@@ -613,6 +613,10 @@ class ExecutionEnvironment(javaEnv: JavaEnv) {
     javaEnv.getExecutionPlan
   }
 
+  def getSqlExecutionPlan(boo: Boolean) = {
+    javaEnv.getSqlExecutionPlan(boo)
+  }
+
   /**
    * Creates the program's [[org.apache.flink.api.common.Plan]].
    * The plan is a description of all data sources, data sinks,

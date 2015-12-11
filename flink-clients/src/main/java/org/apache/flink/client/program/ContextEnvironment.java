@@ -26,6 +26,7 @@ import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.Plan;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.optimizer.plan.OptimizedPlan;
+import org.apache.flink.optimizer.plandump.PlanDumpGenerator;
 import org.apache.flink.optimizer.plandump.PlanJSONDumpGenerator;
 
 /**
@@ -65,6 +66,15 @@ public class ContextEnvironment extends ExecutionEnvironment {
 		OptimizedPlan op = Client.getOptimizedPlan(client.compiler, plan, getParallelism());
 		PlanJSONDumpGenerator gen = new PlanJSONDumpGenerator();
 		return gen.getOptimizerPlanAsJSON(op);
+	}
+
+	@Override
+	public String getSqlExecutionPlan(boolean extended) throws Exception {
+		Plan plan = createProgramPlan("unnamed job");
+
+		OptimizedPlan op = Client.getOptimizedPlan(client.compiler, plan, getParallelism());
+		PlanDumpGenerator gen = new PlanDumpGenerator(extended);
+		return gen.getOptimizerPlan(op);
 	}
 
 	@Override

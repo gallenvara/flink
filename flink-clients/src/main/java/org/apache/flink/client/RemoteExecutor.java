@@ -36,6 +36,7 @@ import org.apache.flink.optimizer.Optimizer;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.optimizer.costs.DefaultCostEstimator;
 import org.apache.flink.optimizer.plan.OptimizedPlan;
+import org.apache.flink.optimizer.plandump.PlanDumpGenerator;
 import org.apache.flink.optimizer.plandump.PlanJSONDumpGenerator;
 import org.apache.flink.configuration.Configuration;
 
@@ -224,6 +225,13 @@ public class RemoteExecutor extends PlanExecutor {
 		Optimizer opt = new Optimizer(new DataStatistics(), new DefaultCostEstimator(), new Configuration());
 		OptimizedPlan optPlan = opt.compile(plan);
 		return new PlanJSONDumpGenerator().getOptimizerPlanAsJSON(optPlan);
+	}
+
+	@Override
+	public String getOptimizerPlanContext(Plan plan, boolean extended) throws Exception {
+		Optimizer opt = new Optimizer(new DataStatistics(), new DefaultCostEstimator(), new Configuration());
+		OptimizedPlan optPlan = opt.compile(plan);
+		return new PlanDumpGenerator(extended).getOptimizerPlan(optPlan);
 	}
 
 	@Override

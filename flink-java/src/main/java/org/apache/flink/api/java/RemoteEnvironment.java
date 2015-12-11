@@ -168,7 +168,7 @@ public class RemoteEnvironment extends ExecutionEnvironment {
 		Plan p = createProgramPlan("plan", false);
 
 		// make sure that we do not start an new executor here
-		// if one runs, fine, of not, we create a local executor (lightweight) and let it
+		// if one runs, fine, or not, we create a local executor (lightweight) and let it
 		// generate the plan
 		if (executor != null) {
 			return executor.getOptimizerPlanAsJSON(p);
@@ -176,6 +176,22 @@ public class RemoteEnvironment extends ExecutionEnvironment {
 		else {
 			PlanExecutor le = PlanExecutor.createLocalExecutor(null);
 			return le.getOptimizerPlanAsJSON(p);
+		}
+	}
+
+	@Override
+	public String getSqlExecutionPlan(boolean extended) throws Exception {
+		Plan p = createProgramPlan("plan", false);
+
+		// make sure that we do not start an new executor here
+		// if one runs, fine, or not, we create a local executor (lightweight) and let it
+		// generate the plan
+		if (executor != null) {
+			return executor.getOptimizerPlanContext(p, extended);
+		}
+		else {
+			PlanExecutor le = PlanExecutor.createLocalExecutor(null);
+			return le.getOptimizerPlanContext(p, extended);
 		}
 	}
 

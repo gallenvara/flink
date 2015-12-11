@@ -57,6 +57,15 @@ public final class PreviewPlanEnvironment extends ExecutionEnvironment {
 	}
 
 	@Override
+	public String getSqlExecutionPlan(boolean extended) throws Exception {
+		Plan plan = createProgramPlan("unused");
+		this.previewPlan = Optimizer.createPreOptimizedPlan(plan);
+
+		// do not go on with anything now!
+		throw new OptimizerPlanEnvironment.ProgramAbortException();
+	}
+
+	@Override
 	public void startNewSession() {
 	}
 
