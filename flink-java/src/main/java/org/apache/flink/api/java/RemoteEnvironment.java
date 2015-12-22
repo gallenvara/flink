@@ -190,7 +190,9 @@ public class RemoteEnvironment extends ExecutionEnvironment {
 			return executor.getOptimizerPlanContext(p, extended);
 		}
 		else {
-			PlanExecutor le = PlanExecutor.createLocalExecutor(null);
+			//PlanExecutor le = PlanExecutor.createLocalExecutor(null);
+			PlanExecutor le = PlanExecutor.createRemoteExecutor(host, port, clientConfiguration,
+					jarFiles, globalClasspaths);
 			return le.getOptimizerPlanContext(p, extended);
 		}
 	}
