@@ -25,13 +25,15 @@ import org.junit._
 case class WC(word: String, count: Int)
 class SqlExplainITCase {
 
+  val testFilePath = SqlExplainITCase.this.getClass.getResource("/").getFile
+  
   @Test
   def testGroupByWithoutExtended() : Unit = {
     val env = ExecutionEnvironment.createLocalEnvironment()
     val expr = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1)).toTable
     val result = expr.groupBy('word).select('word, 'count.sum as 'count).explain()
-    val source = scala.io.Source.fromFile("C:\\Users\\lungao\\mygit\\flink\\flink-staging" +
-      "\\flink-table\\src\\test\\testFile\\testGroupBy0.out").mkString
+    val source = scala.io.Source.fromFile(testFilePath +
+      "../../src/test/scala/resources/testGroupBy0.out").mkString
     assert(result.equals(source))
   }
 
@@ -40,8 +42,8 @@ class SqlExplainITCase {
     val env = ExecutionEnvironment.createLocalEnvironment()
     val expr = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1)).toTable
     val result = expr.groupBy('word).select('word, 'count.sum as 'count).explain(true)
-      val source = scala.io.Source.fromFile("C:\\Users\\lungao\\mygit\\flink\\flink-staging" +
-        "\\flink-table\\src\\test\\testFile\\testGroupBy1.out").mkString
+    val source = scala.io.Source.fromFile(testFilePath +
+      "../../src/test/scala/resources/testGroupBy1.out").mkString
       assert(result.equals(source))
 
   }
@@ -52,8 +54,8 @@ class SqlExplainITCase {
     val expr1 = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1)).toTable.as('a, 'b)
     val expr2 = env.fromElements(WC("hello", 1), WC("world", 1), WC("java", 2)).toTable.as('c, 'd)
     val result = expr1.join(expr2).where("b = d").select("a, c").explain()
-    val source = scala.io.Source.fromFile("C:\\Users\\lungao\\mygit\\flink\\flink-staging" +
-      "\\flink-table\\src\\test\\testFile\\testJoin0.out").mkString
+    val source = scala.io.Source.fromFile(testFilePath +
+      "../../src/test/scala/resources/testJoin0.out").mkString
     assert(result.equals(source))
   }
   
@@ -63,8 +65,8 @@ class SqlExplainITCase {
     val expr1 = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1)).toTable.as('a, 'b)
     val expr2 = env.fromElements(WC("hello", 1), WC("world", 1), WC("java", 2)).toTable.as('c, 'd)
     val result = expr1.join(expr2).where("b = d").select("a, c").explain(true)
-    val source = scala.io.Source.fromFile("C:\\Users\\lungao\\mygit\\flink\\flink-staging" +
-      "\\flink-table\\src\\test\\testFile\\testJoin1.out").mkString
+    val source = scala.io.Source.fromFile(testFilePath +
+      "../../src/test/scala/resources/testJoin1.out").mkString
     assert(result.equals(source))
   }
   
@@ -74,8 +76,8 @@ class SqlExplainITCase {
     val expr1 = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1)).toTable
     val expr2 = env.fromElements(WC("hello", 1), WC("world", 1), WC("java", 2)).toTable
     val result = expr1.unionAll(expr2).explain()
-    val source = scala.io.Source.fromFile("C:\\Users\\lungao\\mygit\\flink\\flink-staging" +
-      "\\flink-table\\src\\test\\testFile\\testUnion0.out").mkString
+    val source = scala.io.Source.fromFile(testFilePath +
+      "../../src/test/scala/resources/testUnion0.out").mkString
     assert(result.equals(source))
   }
   
@@ -85,8 +87,8 @@ class SqlExplainITCase {
     val expr1 = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1)).toTable
     val expr2 = env.fromElements(WC("hello", 1), WC("world", 1), WC("java", 2)).toTable
     val result = expr1.unionAll(expr2).explain(true)
-    val source = scala.io.Source.fromFile("C:\\Users\\lungao\\mygit\\flink\\flink-staging" +
-      "\\flink-table\\src\\test\\testFile\\testUnion1.out").mkString
+    val source = scala.io.Source.fromFile(testFilePath +
+      "../../src/test/scala/resources/testUnion1.out").mkString
     assert(result.equals(source))
   }
 }

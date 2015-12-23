@@ -1,0 +1,148 @@
+== Abstract Syntax Tree ==
+Select(GroupBy(Root(ArraySeq((word,String), (count,Integer))), 'word), 'word,('count).sum as 'count)
+
+== Physical Execution Plan ==
+Stage 6 : Data Source
+	content : at org.apache.flink.api.scala.ExecutionEnvironment.fromElements
+	Partitioning : RANDOM_PARTITIONED
+	Partitioning Order : none
+	Uniqueness : not unique
+	Est. Output Size : unknow
+	Est. Cardinality : unknow
+	Network : 0.0
+	Disk I/O : 0.0
+	CPU : 0.0
+	Cumulative Network : 0.0
+	Cumulative Disk I/O : 0.0
+	Cumulative CPU : 0.0
+	Output Size (bytes) : none
+	Output Cardinality : none
+	Avg. Output Record Size (bytes) : none
+	Filter Factor : none
+
+	Stage 5 : Map
+		content : Map at select('word as 'word,'count as 'count)
+		ship_strategy: Forward
+		exchange_mode : PIPELINED
+		driver_strategy : Map
+		Partitioning : RANDOM_PARTITIONED
+		Partitioning Order : none
+		Uniqueness : not unique
+		Est. Output Size : unknow
+		Est. Cardinality : unknow
+		Network : 0.0
+		Disk I/O : 0.0
+		CPU : 0.0
+		Cumulative Network : 0.0
+		Cumulative Disk I/O : 0.0
+		Cumulative CPU : 0.0
+		Output Size (bytes) : none
+		Output Cardinality : none
+		Avg. Output Record Size (bytes) : none
+		Filter Factor : none
+
+		Stage 4 : Map
+			content : Map at select('word as 'word,'count as 'intermediate.1)
+			ship_strategy: Forward
+			exchange_mode : PIPELINED
+			driver_strategy : Map
+			Partitioning : RANDOM_PARTITIONED
+			Partitioning Order : none
+			Uniqueness : not unique
+			Est. Output Size : unknow
+			Est. Cardinality : unknow
+			Network : 0.0
+			Disk I/O : 0.0
+			CPU : 0.0
+			Cumulative Network : 0.0
+			Cumulative Disk I/O : 0.0
+			Cumulative CPU : 0.0
+			Output Size (bytes) : none
+			Output Cardinality : none
+			Avg. Output Record Size (bytes) : none
+			Filter Factor : none
+
+			Stage 3 : GroupCombine
+				content : GroupReduce at Expression Aggregation: Aggregate(GroupBy(Select(Root(ArraySeq((word,String), (count,Integer))), 'word as 'word,'count as 'intermediate.1), 'word), (intermediate.1,SUM))
+				ship_strategy: Forward
+				exchange_mode : PIPELINED
+				driver_strategy : Sorted Combine
+				Partitioning : RANDOM_PARTITIONED
+				Partitioning Order : none
+				Uniqueness : not unique
+				Est. Output Size : unknow
+				Est. Cardinality : unknow
+				Network : 0.0
+				Disk I/O : 0.0
+				CPU : 0.0
+				Cumulative Network : 0.0
+				Cumulative Disk I/O : 0.0
+				Cumulative CPU : 0.0
+				Output Size (bytes) : none
+				Output Cardinality : none
+				Avg. Output Record Size (bytes) : none
+				Filter Factor : none
+
+				Stage 2 : GroupReduce
+					content : GroupReduce at Expression Aggregation: Aggregate(GroupBy(Select(Root(ArraySeq((word,String), (count,Integer))), 'word as 'word,'count as 'intermediate.1), 'word), (intermediate.1,SUM))
+					ship_strategy: Hash Partition on [0]
+					local_strategy : Sort (combining) on [0:ASC]
+					exchange_mode : PIPELINED
+					driver_strategy : Sorted Group Reduce
+					Partitioning : RANDOM_PARTITIONED
+					Partitioning Order : none
+					Uniqueness : not unique
+					Est. Output Size : unknow
+					Est. Cardinality : unknow
+					Network : unknown
+					Disk I/O : unknown
+					CPU : unknown
+					Cumulative Network : unknown
+					Cumulative Disk I/O : unknown
+					Cumulative CPU : unknown
+					Output Size (bytes) : none
+					Output Cardinality : none
+					Avg. Output Record Size (bytes) : none
+					Filter Factor : none
+
+					Stage 1 : Map
+						content : Map at select('word,'intermediate.1 as 'count)
+						ship_strategy: Forward
+						exchange_mode : PIPELINED
+						driver_strategy : Map
+						Partitioning : RANDOM_PARTITIONED
+						Partitioning Order : none
+						Uniqueness : not unique
+						Est. Output Size : unknow
+						Est. Cardinality : unknow
+						Network : 0.0
+						Disk I/O : 0.0
+						CPU : 0.0
+						Cumulative Network : unknown
+						Cumulative Disk I/O : unknown
+						Cumulative CPU : unknown
+						Output Size (bytes) : none
+						Output Cardinality : none
+						Avg. Output Record Size (bytes) : none
+						Filter Factor : none
+
+						Stage 0 : Data Sink
+							content : org.apache.flink.api.java.io.DiscardingOutputFormat
+							ship_strategy: Forward
+							exchange_mode : PIPELINED
+							Partitioning : RANDOM_PARTITIONED
+							Partitioning Order : none
+							Uniqueness : not unique
+							Est. Output Size : unknow
+							Est. Cardinality : unknow
+							Network : 0.0
+							Disk I/O : 0.0
+							CPU : 0.0
+							Cumulative Network : unknown
+							Cumulative Disk I/O : unknown
+							Cumulative CPU : unknown
+							Output Size (bytes) : none
+							Output Cardinality : none
+							Avg. Output Record Size (bytes) : none
+							Filter Factor : none
+

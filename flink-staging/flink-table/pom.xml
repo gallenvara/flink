@@ -226,6 +226,31 @@ under the License.
 					<outputEncoding>UTF-8</outputEncoding>
 				</configuration>
 			</plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sqlExplainExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>sqlExplainExample</classifier>
+                            <archive>
+                                <manifestEntries>
+                                    <program-class>org.apache.flink.explain.sqlExplainExample</program-class>
+                                </manifestEntries>
+                            </archive>
+                            <includes>
+                                <include>**/explain/*</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 		</plugins>
 	</build>
