@@ -231,6 +231,7 @@ under the License.
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
+                    <!-- groupby select explain -->
                     <execution>
                         <id>sqlExplainExample</id>
                         <phase>package</phase>
@@ -245,7 +246,26 @@ under the License.
                                 </manifestEntries>
                             </archive>
                             <includes>
-                                <include>**/explain/*</include>
+                                <include>**/explain/sqlExplainExample.class</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                    <!-- join explain -->
+                    <execution>
+                        <id>JoinExplainExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>JoinExplainExample</classifier>
+                            <archive>
+                                <manifestEntries>
+                                    <program-class>org.apache.flink.explain.JoinExplainExample</program-class>
+                                </manifestEntries>
+                            </archive>
+                            <includes>
+                                <include>**/explain/JoinExplainExample.class</include>
                             </includes>
                         </configuration>
                     </execution>

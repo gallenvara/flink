@@ -23,20 +23,23 @@ import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.table.TableEnvironment;
 import org.apache.flink.api.table.Table;
 
-public class sqlExplainExample {
+public class JoinExplainExample {
 
 	public static void main(String[] args) throws Exception {
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		System.out.println(env.getClass());
 		TableEnvironment tableEnv = new TableEnvironment();
-		DataSet<WC> ds = env.fromElements(
+		DataSet<WC> ds1 = env.fromElements(
 				new WC("hello", 1),
 				new WC("world", 3),
 				new WC("nian", 5));
-		Table table = tableEnv.fromDataSet(ds);
-		System.out.println(table.groupBy("word")
-				.select("word.count as count, word")
-				.filter("count = 2").explain());
+		Table table1 = tableEnv.fromDataSet(ds1).as("a, b");
+		DataSet<WC> ds2 = env.fromElements(
+				new WC("hello", 2),
+				new WC("java", 3),
+				new WC("world", 5));
+		Table table2 = tableEnv.fromDataSet(ds2).as("c, d");
+		System.out.println(table1.join(table2).where("b = d").select("a, c").explain());
 	}
 
 	public static class WC {
