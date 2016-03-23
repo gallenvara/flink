@@ -20,6 +20,7 @@ package org.apache.flink.streaming.api.scala
 
 import org.apache.flink.api.common.functions.{RichMapFunction, FoldFunction}
 import org.apache.flink.core.fs.FileSystem
+import org.apache.flink.runtime.util.MathUtils
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
 import org.apache.flink.test.util.TestBaseUtils
@@ -57,9 +58,11 @@ class StreamingOperatorsITCase extends ScalaStreamingMultipleProgramsTestBase {
     * The stream is grouped by the first field. For each group, the resulting stream is folded by
     * summing up the second tuple field.
     *
+    * This test relies on the hash function used by the {@link DataStream#keyBy}, which is
+    * assumed to be {@link MathUtils#murmurHash}.
     */
   @Test
-  def testFoldOperator(): Unit = {
+  def testGroupedFoldOperator(): Unit = {
     val numElements = 10
     val numKeys = 2
 
@@ -71,7 +74,7 @@ class StreamingOperatorsITCase extends ScalaStreamingMultipleProgramsTestBase {
 
       override def run(ctx: SourceContext[(Int, Int)]): Unit = {
         0 until numElements foreach {
-          i => ctx.collect((i % numKeys, i))
+          i => ctx.collect((MathUtils.murmurHash(i) % numKeys, i))
         }
       }
 
@@ -86,8 +89,12 @@ class StreamingOperatorsITCase extends ScalaStreamingMultipleProgramsTestBase {
         }
       })
       .map(new RichMapFunction[Int, (Int, Int)] {
+        var key: Int = -1
         override def map(value: Int): (Int, Int) = {
-          (getRuntimeContext.getIndexOfThisSubtask, value)
+          if (key == -1) {
+            key = MathUtils.murmurHash(value) % numKeys
+          }
+          (key, value)
         }
       })
       .split{
@@ -106,7 +113,7 @@ class StreamingOperatorsITCase extends ScalaStreamingMultipleProgramsTestBase {
       .javaStream
       .writeAsText(resultPath2, FileSystem.WriteMode.OVERWRITE)
 
-    val groupedSequence = 0 until numElements groupBy( _ % numKeys)
+    val groupedSequence = 0 until numElements groupBy( MathUtils.murmurHash(_) % numKeys )
 
     expected1 = groupedSequence(0).scanLeft(0)(_ + _).tail.mkString("\n")
     expected2 = groupedSequence(1).scanLeft(0)(_ + _).tail.mkString("\n")

@@ -38,7 +38,7 @@ import java.util.Collections;
  * DataStream<Tuple2<String, Integer>> in = ...;
  * KeyedStream<String, Tuple2<String, Integer>> keyed = in.keyBy(...);
  * WindowedStream<Tuple2<String, Integer>, String, TimeWindows> windowed =
- *   keyed.window(TumblingTimeWindows.of(Time.of(1, MINUTES), Time.of(10, SECONDS));
+ *   keyed.window(TumblingProcessingTimeWindows.of(Time.of(1, MINUTES), Time.of(10, SECONDS));
  * } </pre>
  */
 public class TumblingProcessingTimeWindows extends WindowAssigner<Object, TimeWindow> {
@@ -52,7 +52,8 @@ public class TumblingProcessingTimeWindows extends WindowAssigner<Object, TimeWi
 
 	@Override
 	public Collection<TimeWindow> assignWindows(Object element, long timestamp) {
-		long start = timestamp - (timestamp % size);
+		final long now = System.currentTimeMillis();
+		long start = now - (now % size);
 		return Collections.singletonList(new TimeWindow(start, start + size));
 	}
 
@@ -71,7 +72,7 @@ public class TumblingProcessingTimeWindows extends WindowAssigner<Object, TimeWi
 	}
 
 	/**
-	 * Creates a new {@code TumblingTimeWindows} {@link WindowAssigner} that assigns
+	 * Creates a new {@code TumblingProcessingTimeWindows} {@link WindowAssigner} that assigns
 	 * elements to time windows based on the element timestamp.
 	 *
 	 * @param size The size of the generated windows.

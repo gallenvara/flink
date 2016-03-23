@@ -52,7 +52,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
   /**
    * Windows this [[KeyedStream]] into tumbling time windows.
    *
-   * This is a shortcut for either `.window(TumblingTimeWindows.of(size))` or
+   * This is a shortcut for either `.window(TumblingEventTimeWindows.of(size))` or
    * `.window(TumblingProcessingTimeWindows.of(size))` depending on the time characteristic
    * set using
    * [[StreamExecutionEnvironment.setStreamTimeCharacteristic()]]
@@ -85,7 +85,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
   /**
    * Windows this [[KeyedStream]] into sliding time windows.
    *
-   * This is a shortcut for either `.window(SlidingTimeWindows.of(size))` or
+   * This is a shortcut for either `.window(SlidingEventTimeWindows.of(size))` or
    * `.window(SlidingProcessingTimeWindows.of(size))` depending on the time characteristic
    * set using
    * [[StreamExecutionEnvironment.setStreamTimeCharacteristic()]]
@@ -166,7 +166,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
    * using an associative fold function and an initial value. An independent 
    * aggregate is kept per key.
    */
-  def fold[R: TypeInformation](initialValue: R, fun: (R,T) => R): DataStream[R] = {
+  def fold[R: TypeInformation](initialValue: R)(fun: (R,T) => R): DataStream[R] = {
     if (fun == null) {
       throw new NullPointerException("Fold function must not be null.")
     }

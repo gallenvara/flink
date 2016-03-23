@@ -88,4 +88,17 @@ public class TimestampsAndPeriodicWatermarksOperator<T>
 			output.emitWatermark(mark);
 		}
 	}
+
+	@Override
+	public void close() throws Exception {
+		super.close();
+		
+		// emit a final watermark
+		Watermark newWatermark = userFunction.getCurrentWatermark();
+		if (newWatermark != null && newWatermark.getTimestamp() > currentWatermark) {
+			currentWatermark = newWatermark.getTimestamp();
+			// emit watermark
+			output.emitWatermark(newWatermark);
+		}
+	}
 }

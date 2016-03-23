@@ -293,7 +293,7 @@ keyedStream.maxBy("key");
             key according to some characteristic (e.g., the data that arrived within the last 5 seconds).
             See <a href="windows.html">windows</a> for a complete description of windows.
     {% highlight java %}
-dataStream.keyBy(0).window(TumblingTimeWindows.of(Time.seconds(5))); // Last 5 seconds of data
+dataStream.keyBy(0).window(TumblingEventTimeWindows.of(Time.seconds(5))); // Last 5 seconds of data
     {% endhighlight %}
         </p>
           </td>
@@ -307,7 +307,7 @@ dataStream.keyBy(0).window(TumblingTimeWindows.of(Time.seconds(5))); // Last 5 s
               <p><strong>WARNING:</strong> This is in many cases a <strong>non-parallel</strong> transformation. All records will be
                gathered in one task for the windowAll operator.</p>
   {% highlight java %}
-dataStream.windowAll(TumblingTimeWindows.of(Time.seconds(5))); // Last 5 seconds of data
+dataStream.windowAll(TumblingEventTimeWindows.of(Time.seconds(5))); // Last 5 seconds of data
   {% endhighlight %}
           </td>
         </tr>
@@ -410,7 +410,7 @@ dataStream.union(otherStream1, otherStream2, ...);
     {% highlight java %}
 dataStream.join(otherStream)
     .where(0).equalTo(1)
-    .window(TumblingTimeWindows.of(Time.seconds(3)))
+    .window(TumblingEventTimeWindows.of(Time.seconds(3)))
     .apply (new JoinFunction () {...});
     {% endhighlight %}
           </td>
@@ -422,7 +422,7 @@ dataStream.join(otherStream)
     {% highlight java %}
 dataStream.coGroup(otherStream)
     .where(0).equalTo(1)
-    .window(TumblingTimeWindows.of(Time.seconds(3)))
+    .window(TumblingEventTimeWindows.of(Time.seconds(3)))
     .apply (new CoGroupFunction () {...});
     {% endhighlight %}
           </td>
@@ -669,7 +669,7 @@ keyedStream.maxBy("key")
             key according to some characteristic (e.g., the data that arrived within the last 5 seconds).
             See <a href="windows.html">windows</a> for a description of windows.
     {% highlight scala %}
-dataStream.keyBy(0).window(TumblingTimeWindows.of(Time.seconds(5))) // Last 5 seconds of data
+dataStream.keyBy(0).window(TumblingEventTimeWindows.of(Time.seconds(5))) // Last 5 seconds of data
     {% endhighlight %}
         </p>
           </td>
@@ -683,7 +683,7 @@ dataStream.keyBy(0).window(TumblingTimeWindows.of(Time.seconds(5))) // Last 5 se
               <p><strong>WARNING:</strong> This is in many cases a <strong>non-parallel</strong> transformation. All records will be
                gathered in one task for the windowAll operator.</p>
   {% highlight scala %}
-dataStream.windowAll(TumblingTimeWindows.of(Time.seconds(5))) // Last 5 seconds of data
+dataStream.windowAll(TumblingEventTimeWindows.of(Time.seconds(5))) // Last 5 seconds of data
   {% endhighlight %}
           </td>
         </tr>
@@ -759,7 +759,7 @@ dataStream.union(otherStream1, otherStream2, ...)
     {% highlight scala %}
 dataStream.join(otherStream)
     .where(0).equalTo(1)
-    .window(TumblingTimeWindows.of(Time.seconds(3)))
+    .window(TumblingEventTimeWindows.of(Time.seconds(3)))
     .apply { ... }
     {% endhighlight %}
           </td>
@@ -771,7 +771,7 @@ dataStream.join(otherStream)
     {% highlight scala %}
 dataStream.coGroup(otherStream)
     .where(0).equalTo(1)
-    .window(TumblingTimeWindows.of(Time.seconds(3)))
+    .window(TumblingEventTimeWindows.of(Time.seconds(3)))
     .apply {}
     {% endhighlight %}
           </td>
@@ -847,16 +847,12 @@ val all = split.select("even","odd")
 		to the feedback channel, and the rest of the elements are forwarded downstream.
 		See <a href="#iterations">iterations</a> for a complete description.
                 {% highlight java %}
-initialStream. iterate {
+initialStream.iterate {
   iteration => {
     val iterationBody = iteration.map {/*do something*/}
     (iterationBody.filter(_ > 0), iterationBody.filter(_ <= 0))
   }
 }
-IterativeStream<Long> iteration = initialStream.iterate();
-DataStream<Long> iterationBody = iteration.map (/*do something*/);
-DataStream<Long> feedback = iterationBody.filter ( _ > 0);
-iteration.closeWith(feedback);
                 {% endhighlight %}
             </p>
           </td>
@@ -1216,22 +1212,18 @@ someStream.map(...).disableChaining();
         </p>
       </td>
     </tr>
-   <tr>
-      <td>Start a new resource group</td>
+    <tr>
+      <td>Set slot sharing group</td>
       <td>
-        <p>Start a new resource group containing the map and the subsequent operators.
+        <p>Set the slot sharing group of an operation. Flink will put operations with the same
+        slot sharing group into the same slot while keeping operations that don't have the
+        slot sharing group in other slots. This can be used to isolate slots. The slot sharing
+        group is inherited from input operations if all input operations are in the same slot
+        sharing group.
+        The name of the default slot sharing group is "default", operations can explicitly
+        be put into this group by calling slotSharingGroup("default").
 {% highlight java %}
-someStream.filter(...).startNewResourceGroup();
-{% endhighlight %}
-        </p>
-      </td>
-    </tr>
-   <tr>
-      <td>Isolate resources</td>
-      <td>
-        <p>Isolate the operator in its own slot.
-{% highlight java %}
-someStream.map(...).isolateResources();
+someStream.filter(...).slotSharingGroup("name");
 {% endhighlight %}
         </p>
       </td>
@@ -1275,22 +1267,18 @@ someStream.map(...).disableChaining()
         </p>
       </td>
     </tr>
-   <tr>
-      <td>Start a new resource group</td>
+  <tr>
+      <td>Set slot sharing group</td>
       <td>
-        <p>Start a new resource group containing the map and the subsequent operators.
-{% highlight scala %}
-someStream.filter(...).startNewResourceGroup()
-{% endhighlight %}
-        </p>
-      </td>
-    </tr>
-   <tr>
-      <td>Isolate resources</td>
-      <td>
-        <p>Isolate the operator in its own slot.
-{% highlight scala %}
-someStream.map(...).isolateResources()
+        <p>Set the slot sharing group of an operation. Flink will put operations with the same
+        slot sharing group into the same slot while keeping operations that don't have the
+        slot sharing group in other slots. This can be used to isolate slots. The slot sharing
+        group is inherited from input operations if all input operations are in the same slot
+        sharing group.
+        The name of the default slot sharing group is "default", operations can explicitly
+        be put into this group by calling slotSharingGroup("default").
+{% highlight java %}
+someStream.filter(...).slotSharingGroup("name")
 {% endhighlight %}
         </p>
       </td>
@@ -1505,7 +1493,7 @@ DataStream<Integer> iterationBody = iteration.map(/* this is executed many times
 
 To close an iteration and define the iteration tail, call the `closeWith(feedbackStream)` method of the `IterativeStream`.
 The DataStream given to the `closeWith` function will be fed back to the iteration head.
-A common pattern is to use a filter to separate the part of the strem that is fed back,
+A common pattern is to use a filter to separate the part of the stream that is fed back,
 and the part of the stream which is propagated forward. These filters can, e.g., define
 the "termination" logic, where an element is allowed to propagate downstream rather
 than being fed back.

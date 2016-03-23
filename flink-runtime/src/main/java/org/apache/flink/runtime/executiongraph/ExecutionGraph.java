@@ -809,7 +809,7 @@ public class ExecutionGraph implements Serializable {
 	public void fail(Throwable t) {
 		while (true) {
 			JobStatus current = state;
-			if (current == JobStatus.FAILED || current == JobStatus.FAILING) {
+			if (current == JobStatus.FAILING || current.isTerminalState()) {
 				return;
 			}
 			else if (transitionState(current, JobStatus.FAILING, t)) {
@@ -872,7 +872,17 @@ public class ExecutionGraph implements Serializable {
 
 				// if we have checkpointed state, reload it into the executions
 				if (checkpointCoordinator != null) {
-					checkpointCoordinator.restoreLatestCheckpointedState(getAllVertices(), false, false);
+					boolean restored = checkpointCoordinator
+							.restoreLatestCheckpointedState(getAllVertices(), false, false);
+
+					// TODO(uce) Temporary work around to restore initial state on
+					// failure during recovery. Will be superseded by FLINK-3397.
+					if (!restored && savepointCoordinator != null) {
+						String savepointPath = savepointCoordinator.getSavepointRestorePath();
+						if (savepointPath != null) {
+							savepointCoordinator.restoreSavepoint(getAllVertices(), savepointPath);
+						}
+					}
 				}
 			}
 

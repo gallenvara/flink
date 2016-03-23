@@ -20,13 +20,17 @@ package org.apache.flink.streaming.api.scala
 
 import java.util.concurrent.TimeUnit
 
+import org.apache.flink.api.common.functions.FoldFunction
+import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.functions.{AssignerWithPunctuatedWatermarks, AssignerWithPeriodicWatermarks}
+import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.functions.sink.SinkFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction
+import org.apache.flink.streaming.api.scala.testutils.{CheckingIdentityRichWindowFunction, CheckingIdentityRichAllWindowFunction}
 import org.apache.flink.streaming.api.watermark.Watermark
-import org.apache.flink.streaming.api.windowing.assigners.TumblingTimeWindows
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.streaming.util.StreamingMultipleProgramsTestBase
 import org.junit.Test
 import org.junit.Assert._
@@ -59,8 +63,7 @@ class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
         ctx.collect(("a", 7))
         ctx.collect(("a", 8))
 
-        // so we get a big watermark to trigger processing of the previous elements
-        ctx.collect(("a", 20))
+        // source is finite, so it will have an implicit MAX watermark when it finishes
       }
 
       def cancel() {
@@ -69,8 +72,8 @@ class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
 
     source1
       .keyBy(0)
-      .window(TumblingTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
-      .fold(("R:", 0), { (acc: (String, Int), v: (String, Int)) => (acc._1 + v._1, acc._2 + v._2) })
+      .window(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+      .fold(("R:", 0)) { (acc: (String, Int), v: (String, Int)) => (acc._1 + v._1, acc._2 + v._2) }
       .addSink(new SinkFunction[(String, Int)]() {
         def invoke(value: (String, Int)) {
         WindowFoldITCase.testResults += value.toString
@@ -88,9 +91,68 @@ class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
   }
 
   @Test
+  def testFoldWithWindowFunction(): Unit = {
+    WindowFoldITCase.testResults = mutable.MutableList()
+    CheckingIdentityRichWindowFunction.reset()
+
+    val foldFunc = new FoldFunction[(String, Int), (String, Int)] {
+      override def fold(accumulator: (String, Int), value: (String, Int)): (String, Int) = {
+        (accumulator._1 + value._1, accumulator._2 + value._2)
+      }
+    }
+    
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setParallelism(1)
+
+    val source1 = env.addSource(new SourceFunction[(String, Int)]() {
+      def run(ctx: SourceFunction.SourceContext[(String, Int)]) {
+        ctx.collect(("a", 0))
+        ctx.collect(("a", 1))
+        ctx.collect(("a", 2))
+        ctx.collect(("b", 3))
+        ctx.collect(("b", 4))
+        ctx.collect(("b", 5))
+        ctx.collect(("a", 6))
+        ctx.collect(("a", 7))
+        ctx.collect(("a", 8))
+
+        // source is finite, so it will have an implicit MAX watermark when it finishes
+      }
+
+      def cancel() {
+      }
+    }).assignTimestampsAndWatermarks(new WindowFoldITCase.Tuple2TimestampExtractor)
+    
+    source1
+      .keyBy(0)
+      .window(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+      .apply(
+        ("R:", 0),
+        foldFunc,
+        new CheckingIdentityRichWindowFunction[(String, Int), Tuple, TimeWindow]())
+      .addSink(new SinkFunction[(String, Int)]() {
+        def invoke(value: (String, Int)) {
+          WindowFoldITCase.testResults += value.toString
+        }
+      })
+
+    env.execute("Fold Window Test")
+
+    val expectedResult = mutable.MutableList(
+      "(R:aaa,3)",
+      "(R:aaa,21)",
+      "(R:bbb,12)")
+
+    assertEquals(expectedResult.sorted, WindowFoldITCase.testResults.sorted)
+
+    CheckingIdentityRichWindowFunction.checkRichMethodCalls()
+  }
+
+  @Test
   def testFoldAllWindow(): Unit = {
     WindowFoldITCase.testResults = mutable.MutableList()
-
+    
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.setParallelism(1)
@@ -107,8 +169,7 @@ class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
         ctx.collect(("b", 5))
         ctx.collect(("a", 5))
 
-        // so we get a big watermark to trigger processing of the previous elements
-        ctx.collect(("a", 20))
+        // source is finite, so it will have an implicit MAX watermark when it finishes
       }
 
       def cancel() {
@@ -116,8 +177,8 @@ class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
     }).assignTimestampsAndWatermarks(new WindowFoldITCase.Tuple2TimestampExtractor)
 
     source1
-      .windowAll(TumblingTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
-      .fold(("R:", 0), { (acc: (String, Int), v: (String, Int)) => (acc._1 + v._1, acc._2 + v._2) })
+      .windowAll(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+      .fold(("R:", 0)) { (acc: (String, Int), v: (String, Int)) => (acc._1 + v._1, acc._2 + v._2) }
       .addSink(new SinkFunction[(String, Int)]() {
       def invoke(value: (String, Int)) {
         WindowFoldITCase.testResults += value.toString
@@ -133,6 +194,62 @@ class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
     assertEquals(expectedResult.sorted, WindowFoldITCase.testResults.sorted)
   }
 
+  @Test
+  def testFoldAllWithWindowFunction(): Unit = {
+    WindowFoldITCase.testResults = mutable.MutableList()
+    CheckingIdentityRichAllWindowFunction.reset()
+    
+    val foldFunc = new FoldFunction[(String, Int), (String, Int)] {
+      override def fold(accumulator: (String, Int), value: (String, Int)): (String, Int) = {
+        (accumulator._1 + value._1, accumulator._2 + value._2)
+      }
+    }
+    
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setParallelism(1)
+
+    val source1 = env.addSource(new SourceFunction[(String, Int)]() {
+      def run(ctx: SourceFunction.SourceContext[(String, Int)]) {
+        ctx.collect(("a", 0))
+        ctx.collect(("a", 1))
+        ctx.collect(("a", 2))
+        ctx.collect(("b", 3))
+        ctx.collect(("a", 3))
+        ctx.collect(("b", 4))
+        ctx.collect(("a", 4))
+        ctx.collect(("b", 5))
+        ctx.collect(("a", 5))
+
+        // source is finite, so it will have an implicit MAX watermark when it finishes
+      }
+
+      def cancel() {
+      }
+    }).assignTimestampsAndWatermarks(new WindowFoldITCase.Tuple2TimestampExtractor)
+
+    source1
+      .windowAll(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+      .apply(
+        ("R:", 0),
+        foldFunc,
+        new CheckingIdentityRichAllWindowFunction[(String, Int), TimeWindow]())
+      .addSink(new SinkFunction[(String, Int)]() {
+        def invoke(value: (String, Int)) {
+          WindowFoldITCase.testResults += value.toString
+        }
+      })
+
+    env.execute("Fold All-Window Test")
+
+    val expectedResult = mutable.MutableList(
+      "(R:aaa,3)",
+      "(R:bababa,24)")
+
+    assertEquals(expectedResult.sorted, WindowFoldITCase.testResults.sorted)
+
+    CheckingIdentityRichAllWindowFunction.checkRichMethodCalls()
+  }
 }
 
 

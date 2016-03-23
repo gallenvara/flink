@@ -20,8 +20,8 @@ package org.apache.flink.streaming.api.datastream;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.annotation.Public;
 import org.apache.flink.api.common.functions.InvalidTypesException;
+import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.api.java.typeutils.TypeInfoParser;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.operators.ChainingStrategy;
@@ -29,15 +29,16 @@ import org.apache.flink.streaming.api.transformations.PartitionTransformation;
 import org.apache.flink.streaming.api.transformations.StreamTransformation;
 import org.apache.flink.streaming.runtime.partitioner.StreamPartitioner;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * The SingleOutputStreamOperator represents a user defined transformation
+ * {@code SingleOutputStreamOperator} represents a user defined transformation
  * applied on a {@link DataStream} with one predefined output type.
  *
- * @param <T> The type of the elements in this Stream
- * @param <O> Type of the operator.
+ * @param <T> The type of the elements in this stream.
  */
 @Public
-public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<T, O>> extends DataStream<T> {
+public class SingleOutputStreamOperator<T> extends DataStream<T> {
 
 	protected SingleOutputStreamOperator(StreamExecutionEnvironment environment, StreamTransformation<T> transformation) {
 		super(environment, transformation);
@@ -59,7 +60,7 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 *
 	 * @return The named operator.
 	 */
-	public SingleOutputStreamOperator<T, O> name(String name){
+	public SingleOutputStreamOperator<T> name(String name){
 		transformation.setName(name);
 		return this;
 	}
@@ -77,7 +78,7 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 * @return The operator with the specified ID.
 	 */
 	@PublicEvolving
-	public SingleOutputStreamOperator<T, O> uid(String uid) {
+	public SingleOutputStreamOperator<T> uid(String uid) {
 		transformation.setUid(uid);
 		return this;
 	}
@@ -89,7 +90,7 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 *            The parallelism for this operator.
 	 * @return The operator with set parallelism.
 	 */
-	public SingleOutputStreamOperator<T, O> setParallelism(int parallelism) {
+	public SingleOutputStreamOperator<T> setParallelism(int parallelism) {
 		if (parallelism < 1) {
 			throw new IllegalArgumentException("The parallelism of an operator must be at least 1.");
 		}
@@ -107,48 +108,9 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 *            The maximum time between two output flushes.
 	 * @return The operator with buffer timeout set.
 	 */
-	public SingleOutputStreamOperator<T, O> setBufferTimeout(long timeoutMillis) {
+	public SingleOutputStreamOperator<T> setBufferTimeout(long timeoutMillis) {
 		transformation.setBufferTimeout(timeoutMillis);
 		return this;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public SingleOutputStreamOperator<T, O> broadcast() {
-		return (SingleOutputStreamOperator<T, O>) super.broadcast();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	@PublicEvolving
-	public SingleOutputStreamOperator<T, O> shuffle() {
-		return (SingleOutputStreamOperator<T, O>) super.shuffle();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public SingleOutputStreamOperator<T, O> forward() {
-		return (SingleOutputStreamOperator<T, O>) super.forward();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public SingleOutputStreamOperator<T, O> rebalance() {
-		return (SingleOutputStreamOperator<T, O>) super.rebalance();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	@PublicEvolving
-	public SingleOutputStreamOperator<T, O> rescale() {
-		return (SingleOutputStreamOperator<T, O>) super.rescale();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	@PublicEvolving
-	public SingleOutputStreamOperator<T, O> global() {
-		return (SingleOutputStreamOperator<T, O>) super.global();
 	}
 
 	/**
@@ -161,7 +123,7 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 * @return The operator with the modified chaining strategy
 	 */
 	@PublicEvolving
-	private SingleOutputStreamOperator<T, O> setChainingStrategy(ChainingStrategy strategy) {
+	private SingleOutputStreamOperator<T> setChainingStrategy(ChainingStrategy strategy) {
 		this.transformation.setChainingStrategy(strategy);
 		return this;
 	}
@@ -176,7 +138,7 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 * @return The operator with chaining disabled
 	 */
 	@PublicEvolving
-	public SingleOutputStreamOperator<T, O> disableChaining() {
+	public SingleOutputStreamOperator<T> disableChaining() {
 		return setChainingStrategy(ChainingStrategy.NEVER);
 	}
 
@@ -188,10 +150,87 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 * @return The operator with chaining set.
 	 */
 	@PublicEvolving
-	public SingleOutputStreamOperator<T, O> startNewChain() {
+	public SingleOutputStreamOperator<T> startNewChain() {
 		return setChainingStrategy(ChainingStrategy.HEAD);
 	}
 
+	// ------------------------------------------------------------------------
+	//  Type hinting
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Adds a type information hint about the return type of this operator. This method
+	 * can be used in cases where Flink cannot determine automatically what the produced
+	 * type of a function is. That can be the case if the function uses generic type variables
+	 * in the return type that cannot be inferred from the input type.
+	 *
+	 * <p>Classes can be used as type hints for non-generic types (classes without generic parameters),
+	 * but not for generic types like for example Tuples. For those generic types, please
+	 * use the {@link #returns(TypeHint)} method.
+	 *
+	 * @param typeClass The class of the returned data type.
+	 * @return This operator with the type information corresponding to the given type class.
+	 */
+	public SingleOutputStreamOperator<T> returns(Class<T> typeClass) {
+		requireNonNull(typeClass, "type class must not be null.");
+
+		try {
+			return returns(TypeInformation.of(typeClass));
+		}
+		catch (InvalidTypesException e) {
+			throw new InvalidTypesException("Cannot infer the type information from the class alone." +
+					"This is most likely because the class represents a generic type. In that case," +
+					"please use the 'returns(TypeHint)' method instead.");
+		}
+	}
+
+	/**
+	 * Adds a type information hint about the return type of this operator. This method
+	 * can be used in cases where Flink cannot determine automatically what the produced
+	 * type of a function is. That can be the case if the function uses generic type variables
+	 * in the return type that cannot be inferred from the input type.
+	 *
+	 * <p>Use this method the following way:
+	 * <pre>{@code
+	 *     DataStream<Tuple2<String, Double>> result = 
+	 *         stream.flatMap(new FunctionWithNonInferrableReturnType())
+	 *               .returns(new TypeHint<Tuple2<String, Double>>(){});
+	 * }</pre>
+	 *
+	 * @param typeHint The type hint for the returned data type.
+	 * @return This operator with the type information corresponding to the given type hint.
+	 */
+	public SingleOutputStreamOperator<T> returns(TypeHint<T> typeHint) {
+		requireNonNull(typeHint, "TypeHint must not be null");
+
+		try {
+			return returns(TypeInformation.of(typeHint));
+		}
+		catch (InvalidTypesException e) {
+			throw new InvalidTypesException("Cannot infer the type information from the type hint. " +
+					"Make sure that the TypeHint does not use any generic type variables.");
+		}
+	}
+
+	/**
+	 * Adds a type information hint about the return type of this operator. This method
+	 * can be used in cases where Flink cannot determine automatically what the produced
+	 * type of a function is. That can be the case if the function uses generic type variables
+	 * in the return type that cannot be inferred from the input type.
+	 *
+	 * <p>In most cases, the methods {@link #returns(Class)} and {@link #returns(TypeHint)}
+	 * are preferable.
+	 *
+	 * @param typeInfo type information as a return type hint
+	 * @return This operator with a given return type hint.
+	 */
+	public SingleOutputStreamOperator<T> returns(TypeInformation<T> typeInfo) {
+		requireNonNull(typeInfo, "TypeInformation must not be null");
+		
+		transformation.setOutputType(typeInfo);
+		return this;
+	}
+	
 	/**
 	 * Adds a type information hint about the return type of this operator. 
 	 * 
@@ -226,89 +265,25 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 * @param typeInfoString
 	 *            type information string to be parsed
 	 * @return This operator with a given return type hint.
+	 * 
+	 * @deprecated Please use {@link #returns(Class)} or {@link #returns(TypeHint)} instead.
 	 */
-	public O returns(String typeInfoString) {
+	@Deprecated
+	@PublicEvolving
+	public SingleOutputStreamOperator<T> returns(String typeInfoString) {
 		if (typeInfoString == null) {
 			throw new IllegalArgumentException("Type information string must not be null.");
 		}
 		return returns(TypeInfoParser.<T>parse(typeInfoString));
 	}
 	
-	/**
-	 * Adds a type information hint about the return type of this operator. 
-	 * 
-	 * <p>
-	 * Type hints are important in cases where the Java compiler
-	 * throws away generic type information necessary for efficient execution.
-	 * 
-	 * <p>
-	 * This method takes an instance of {@link org.apache.flink.api.common.typeinfo.TypeInformation} such as:
-	 * 
-	 * <ul>
-	 * <li>{@link org.apache.flink.api.common.typeinfo.BasicTypeInfo}</li>
-	 * <li>{@link org.apache.flink.api.common.typeinfo.BasicArrayTypeInfo}</li>
-	 * <li>{@link org.apache.flink.api.java.typeutils.TupleTypeInfo}</li>
-	 * <li>{@link org.apache.flink.api.java.typeutils.PojoTypeInfo}</li>
-	 * <li>{@link org.apache.flink.api.java.typeutils.WritableTypeInfo}</li>
-	 * <li>{@link org.apache.flink.api.java.typeutils.ValueTypeInfo}</li>
-	 * <li>etc.</li>
-	 * </ul>
-	 *
-	 * @param typeInfo
-	 *            type information as a return type hint
-	 * @return This operator with a given return type hint.
-	 */
-	public O returns(TypeInformation<T> typeInfo) {
-		if (typeInfo == null) {
-			throw new IllegalArgumentException("Type information must not be null.");
-		}
-		transformation.setOutputType(typeInfo);
-		@SuppressWarnings("unchecked")
-		O returnType = (O) this;
-		return returnType;
-	}
-	
-	/**
-	 * Adds a type information hint about the return type of this operator. 
-	 * 
-	 * <p>
-	 * Type hints are important in cases where the Java compiler
-	 * throws away generic type information necessary for efficient execution.
-	 * 
-	 * <p>
-	 * This method takes a class that will be analyzed by Flink's type extraction capabilities.
-	 * 
-	 * <p>
-	 * Examples for classes are:
-	 * <ul>
-	 * <li>Basic types such as <code>Integer.class</code>, <code>String.class</code>, etc.</li>
-	 * <li>POJOs such as <code>MyPojo.class</code></li>
-	 * <li>Classes that <b>extend</b> tuples. Classes like <code>Tuple1.class</code>,<code>Tuple2.class</code>, etc. are <b>not</b> sufficient.</li>
-	 * <li>Arrays such as <code>String[].class</code>, etc.</li>
-	 * </ul>
-	 *
-	 * @param typeClass
-	 *            class as a return type hint
-	 * @return This operator with a given return type hint.
-	 */
-	@SuppressWarnings("unchecked")
-	public O returns(Class<T> typeClass) {
-		if (typeClass == null) {
-			throw new IllegalArgumentException("Type class must not be null.");
-		}
-		
-		try {
-			TypeInformation<T> ti = (TypeInformation<T>) TypeExtractor.createTypeInfo(typeClass);
-			return returns(ti);
-		}
-		catch (InvalidTypesException e) {
-			throw new InvalidTypesException("The given class is not suited for providing necessary type information.", e);
-		}
-	}
+	// ------------------------------------------------------------------------
+	//  Miscellaneous
+	// ------------------------------------------------------------------------
 
 	@Override
 	protected DataStream<T> setConnectionType(StreamPartitioner<T> partitioner) {
-		return new SingleOutputStreamOperator<T, O>(this.getExecutionEnvironment(), new PartitionTransformation<T>(this.getTransformation(), partitioner));
+		return new SingleOutputStreamOperator<>(this.getExecutionEnvironment(), new PartitionTransformation<>(this.getTransformation(), partitioner));
 	}
 
 	/**
@@ -325,7 +300,7 @@ public class SingleOutputStreamOperator<T, O extends SingleOutputStreamOperator<
 	 * @param slotSharingGroup The slot sharing group name.
 	 */
 	@PublicEvolving
-	public SingleOutputStreamOperator<T, O> slotSharingGroup(String slotSharingGroup) {
+	public SingleOutputStreamOperator<T> slotSharingGroup(String slotSharingGroup) {
 		transformation.setSlotSharingGroup(slotSharingGroup);
 		return this;
 	}

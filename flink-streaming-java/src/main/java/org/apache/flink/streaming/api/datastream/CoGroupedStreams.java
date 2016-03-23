@@ -65,7 +65,7 @@ import static java.util.Objects.requireNonNull;
  * DataStream<T> result = one.coGroup(two)
  *     .where(new MyFirstKeySelector())
  *     .equalTo(new MyFirstKeySelector())
- *     .window(TumblingTimeWindows.of(Time.of(5, TimeUnit.SECONDS)))
+ *     .window(TumblingEventTimeWindows.of(Time.of(5, TimeUnit.SECONDS)))
  *     .apply(new MyCoGroupFunction());
  * } </pre>
  */
@@ -556,7 +556,7 @@ public class CoGroupedStreams<T1, T2> {
 
 	private static class CoGroupWindowFunction<T1, T2, T, KEY, W extends Window>
 			extends WrappingFunction<CoGroupFunction<T1, T2, T>>
-			implements WindowFunction<Iterable<TaggedUnion<T1, T2>>, T, KEY, W> {
+			implements WindowFunction<TaggedUnion<T1, T2>, T, KEY, W> {
 		
 		private static final long serialVersionUID = 1L;
 

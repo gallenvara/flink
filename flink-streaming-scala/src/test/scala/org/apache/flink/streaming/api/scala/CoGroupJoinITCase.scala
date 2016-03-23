@@ -25,7 +25,7 @@ import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.functions.sink.SinkFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.watermark.Watermark
-import org.apache.flink.streaming.api.windowing.assigners.TumblingTimeWindows
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.util.StreamingMultipleProgramsTestBase
 
@@ -56,8 +56,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
         ctx.collect(("a", 7))
         ctx.collect(("a", 8))
 
-        // so that we get a high final watermark to process the previously sent elements
-        ctx.collect(("a", 20))
+        // source is finite, so it will have an implicit MAX watermark when it finishes
       }
 
       def cancel() {}
@@ -73,8 +72,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
         ctx.collect(("c", 7))
         ctx.collect(("c", 8))
 
-        // so that we get a high final watermark to process the previously sent elements
-        ctx.collect(("c", 20))
+        // source is finite, so it will have an implicit MAX watermark when it finishes
       }
 
       def cancel() {
@@ -84,7 +82,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
     source1.coGroup(source2)
       .where(_._1)
       .equalTo(_._1)
-      .window(TumblingTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+      .window(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
       .apply { (first: Iterator[(String, Int)], second: Iterator[(String, Int)]) =>
           "F:" + first.mkString("") + " S:" + second.mkString("")
       }
@@ -126,8 +124,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
         ctx.collect(("a", "j", 7))
         ctx.collect(("a", "k", 8))
 
-        // so that we get a high final watermark to process the previously sent elements
-        ctx.collect(("a", "k", 20))
+        // source is finite, so it will have an implicit MAX watermark when it finishes
       }
 
       def cancel() {}
@@ -145,8 +142,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
         ctx.collect(("a", "x", 6))
         ctx.collect(("a", "z", 8))
 
-        // so that we get a high final watermark to process the previously sent elements
-        ctx.collect(("a", "z", 20))
+        // source is finite, so it will have an implicit MAX watermark when it finishes
       }
 
       def cancel() {}
@@ -156,7 +152,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
     source1.join(source2)
       .where(_._1)
       .equalTo(_._1)
-      .window(TumblingTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+      .window(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
       .apply( (l, r) => l.toString + ":" + r.toString)
       .addSink(new SinkFunction[String]() {
         def invoke(value: String) {
@@ -208,8 +204,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
         ctx.collect(("a", "j", 7))
         ctx.collect(("a", "k", 8))
 
-        // so that we get a high final watermark to process the previously sent elements
-        ctx.collect(("a", "k", 20))
+        // source is finite, so it will have an implicit MAX watermark when it finishes
       }
 
       def cancel() {}
@@ -219,7 +214,7 @@ class CoGroupJoinITCase extends StreamingMultipleProgramsTestBase {
     source1.join(source1)
       .where(_._1)
       .equalTo(_._1)
-      .window(TumblingTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+      .window(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
       .apply( (l, r) => l.toString + ":" + r.toString)
       .addSink(new SinkFunction[String]() {
       def invoke(value: String) {

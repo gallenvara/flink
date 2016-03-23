@@ -30,7 +30,6 @@ import org.apache.flink.api.common.state.ReducingStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.Utils;
 import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction;
@@ -52,6 +51,8 @@ import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.streaming.runtime.operators.windowing.AccumulatingProcessingTimeWindowOperator;
 import org.apache.flink.streaming.runtime.operators.windowing.AggregatingProcessingTimeWindowOperator;
 import org.apache.flink.streaming.runtime.operators.windowing.EvictingWindowOperator;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalIterableWindowFunction;
+import org.apache.flink.streaming.runtime.operators.windowing.functions.InternalSingleValueWindowFunction;
 import org.apache.flink.streaming.runtime.operators.windowing.WindowOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecordSerializer;
@@ -149,7 +150,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @return The data stream that is the result of applying the reduce function to the window. 
 	 */
 	@SuppressWarnings("unchecked")
-	public SingleOutputStreamOperator<T, ?> reduce(ReduceFunction<T> function) {
+	public SingleOutputStreamOperator<T> reduce(ReduceFunction<T> function) {
 		if (function instanceof RichFunction) {
 			throw new UnsupportedOperationException("ReduceFunction of reduce can not be a RichFunction. " +
 				"Please use apply(ReduceFunction, WindowFunction) instead.");
@@ -161,7 +162,7 @@ public class WindowedStream<T, K, W extends Window> {
 		String callLocation = Utils.getCallLocationName();
 		String udfName = "WindowedStream." + callLocation;
 
-		SingleOutputStreamOperator<T, ?> result = createFastTimeOperatorIfValid(function, input.getType(), udfName);
+		SingleOutputStreamOperator<T> result = createFastTimeOperatorIfValid(function, input.getType(), udfName);
 		if (result != null) {
 			return result;
 		}
@@ -177,7 +178,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param function The fold function.
 	 * @return The data stream that is the result of applying the fold function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> fold(R initialValue, FoldFunction<T, R> function) {
+	public <R> SingleOutputStreamOperator<R> fold(R initialValue, FoldFunction<T, R> function) {
 		if (function instanceof RichFunction) {
 			throw new UnsupportedOperationException("FoldFunction can not be a RichFunction. " +
 				"Please use apply(FoldFunction, WindowFunction) instead.");
@@ -197,7 +198,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param function The fold function.
 	 * @return The data stream that is the result of applying the fold function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> fold(R initialValue, FoldFunction<T, R> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> fold(R initialValue, FoldFunction<T, R> function, TypeInformation<R> resultType) {
 		if (function instanceof RichFunction) {
 			throw new UnsupportedOperationException("FoldFunction can not be a RichFunction. " +
 				"Please use apply(FoldFunction, WindowFunction) instead.");
@@ -218,11 +219,9 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param function The window function.
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(WindowFunction<Iterable<T>, R, K, W> function) {
-		@SuppressWarnings("unchecked, rawtypes")
-		TypeInformation<Iterable<T>> iterTypeInfo = new GenericTypeInfo<>((Class) Iterable.class);
+	public <R> SingleOutputStreamOperator<R> apply(WindowFunction<T, R, K, W> function) {
 		TypeInformation<R> resultType = TypeExtractor.getUnaryOperatorReturnType(
-				function, WindowFunction.class, true, true, iterTypeInfo, null, false);
+				function, WindowFunction.class, true, true, getInputType(), null, false);
 
 		return apply(function, resultType);
 	}
@@ -240,7 +239,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param resultType Type information for the result type of the window function
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(WindowFunction<Iterable<T>, R, K, W> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> apply(WindowFunction<T, R, K, W> function, TypeInformation<R> resultType) {
 
 		//clean the closure
 		function = input.getExecutionEnvironment().clean(function);
@@ -248,7 +247,7 @@ public class WindowedStream<T, K, W extends Window> {
 		String callLocation = Utils.getCallLocationName();
 		String udfName = "WindowedStream." + callLocation;
 
-		SingleOutputStreamOperator<R, ?> result = createFastTimeOperatorIfValid(function, resultType, udfName);
+		SingleOutputStreamOperator<R> result = createFastTimeOperatorIfValid(function, resultType, udfName);
 		if (result != null) {
 			return result;
 		}
@@ -270,7 +269,7 @@ public class WindowedStream<T, K, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					function,
+					new InternalIterableWindowFunction<>(function),
 					trigger,
 					evictor);
 
@@ -285,7 +284,7 @@ public class WindowedStream<T, K, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					function,
+					new InternalIterableWindowFunction<>(function),
 					trigger);
 		}
 
@@ -305,7 +304,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
 
-	public <R> SingleOutputStreamOperator<R, ?> apply(ReduceFunction<T> reduceFunction, WindowFunction<T, R, K, W> function) {
+	public <R> SingleOutputStreamOperator<R> apply(ReduceFunction<T> reduceFunction, WindowFunction<T, R, K, W> function) {
 		TypeInformation<T> inType = input.getType();
 		TypeInformation<R> resultType = TypeExtractor.getUnaryOperatorReturnType(
 				function, WindowFunction.class, true, true, inType, null, false);
@@ -326,7 +325,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param resultType Type information for the result type of the window function
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(ReduceFunction<T> reduceFunction, WindowFunction<T, R, K, W> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> apply(ReduceFunction<T> reduceFunction, WindowFunction<T, R, K, W> function, TypeInformation<R> resultType) {
 		if (reduceFunction instanceof RichFunction) {
 			throw new UnsupportedOperationException("ReduceFunction of apply can not be a RichFunction.");
 		}
@@ -350,13 +349,13 @@ public class WindowedStream<T, K, W extends Window> {
 			opName = "TriggerWindow(" + windowAssigner + ", " + stateDesc + ", " + trigger + ", " + evictor + ", " + udfName + ")";
 
 			operator = new EvictingWindowOperator<>(windowAssigner,
-				windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-				keySel,
-				input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
-				stateDesc,
-				new ReduceApplyWindowFunction<>(reduceFunction, function),
-				trigger,
-				evictor);
+					windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
+					keySel,
+					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
+					stateDesc,
+					new InternalIterableWindowFunction<>(new ReduceApplyWindowFunction<>(reduceFunction, function)),
+					trigger,
+					evictor);
 
 		} else {
 			ReducingStateDescriptor<T> stateDesc = new ReducingStateDescriptor<>("window-contents",
@@ -370,7 +369,7 @@ public class WindowedStream<T, K, W extends Window> {
 					keySel,
 					input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 					stateDesc,
-					function,
+					new InternalSingleValueWindowFunction<>(function),
 					trigger);
 		}
 
@@ -390,7 +389,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param function The window function.
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(R initialValue, FoldFunction<T, R> foldFunction, WindowFunction<R, R, K, W> function) {
+	public <R> SingleOutputStreamOperator<R> apply(R initialValue, FoldFunction<T, R> foldFunction, WindowFunction<R, R, K, W> function) {
 
 		TypeInformation<R> resultType = TypeExtractor.getFoldReturnTypes(foldFunction, input.getType(),
 			Utils.getCallLocationName(), true);
@@ -412,7 +411,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param resultType Type information for the result type of the window function
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(R initialValue, FoldFunction<T, R> foldFunction, WindowFunction<R, R, K, W> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> apply(R initialValue, FoldFunction<T, R> foldFunction, WindowFunction<R, R, K, W> function, TypeInformation<R> resultType) {
 		if (foldFunction instanceof RichFunction) {
 			throw new UnsupportedOperationException("ReduceFunction of apply can not be a RichFunction.");
 		}
@@ -441,7 +440,7 @@ public class WindowedStream<T, K, W extends Window> {
 				keySel,
 				input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 				stateDesc,
-				new FoldApplyWindowFunction<>(initialValue, foldFunction, function),
+				new InternalIterableWindowFunction<>(new FoldApplyWindowFunction<>(initialValue, foldFunction, function)),
 				trigger,
 				evictor);
 
@@ -458,7 +457,7 @@ public class WindowedStream<T, K, W extends Window> {
 				keySel,
 				input.getKeyType().createSerializer(getExecutionEnvironment().getConfig()),
 				stateDesc,
-				function,
+				new InternalSingleValueWindowFunction<>(function),
 				trigger);
 		}
 
@@ -476,7 +475,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param positionToSum The position in the tuple/array to sum
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> sum(int positionToSum) {
+	public SingleOutputStreamOperator<T> sum(int positionToSum) {
 		return aggregate(new SumAggregator<>(positionToSum, input.getType(), input.getExecutionConfig()));
 	}
 
@@ -493,7 +492,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param field The field to sum
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> sum(String field) {
+	public SingleOutputStreamOperator<T> sum(String field) {
 		return aggregate(new SumAggregator<>(field, input.getType(), input.getExecutionConfig()));
 	}
 
@@ -504,7 +503,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param positionToMin The position to minimize
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> min(int positionToMin) {
+	public SingleOutputStreamOperator<T> min(int positionToMin) {
 		return aggregate(new ComparableAggregator<>(positionToMin, input.getType(), AggregationFunction.AggregationType.MIN, input.getExecutionConfig()));
 	}
 
@@ -521,7 +520,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param field The field expression based on which the aggregation will be applied.
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> min(String field) {
+	public SingleOutputStreamOperator<T> min(String field) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MIN, false, input.getExecutionConfig()));
 	}
 
@@ -534,7 +533,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 *            The position to minimize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(int positionToMinBy) {
+	public SingleOutputStreamOperator<T> minBy(int positionToMinBy) {
 		return this.minBy(positionToMinBy, true);
 	}
 
@@ -546,7 +545,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param positionToMinBy The position to minimize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(String positionToMinBy) {
+	public SingleOutputStreamOperator<T> minBy(String positionToMinBy) {
 		return this.minBy(positionToMinBy, true);
 	}
 
@@ -560,7 +559,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param first If true, then the operator return the first element with the minimum value, otherwise returns the last
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(int positionToMinBy, boolean first) {
+	public SingleOutputStreamOperator<T> minBy(int positionToMinBy, boolean first) {
 		return aggregate(new ComparableAggregator<>(positionToMinBy, input.getType(), AggregationFunction.AggregationType.MINBY, first, input.getExecutionConfig()));
 	}
 
@@ -575,7 +574,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param first If True then in case of field equality the first object will be returned
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(String field, boolean first) {
+	public SingleOutputStreamOperator<T> minBy(String field, boolean first) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MINBY, first, input.getExecutionConfig()));
 	}
 
@@ -586,7 +585,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param positionToMax The position to maximize
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> max(int positionToMax) {
+	public SingleOutputStreamOperator<T> max(int positionToMax) {
 		return aggregate(new ComparableAggregator<>(positionToMax, input.getType(), AggregationFunction.AggregationType.MAX, input.getExecutionConfig()));
 	}
 
@@ -600,7 +599,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param field The field expression based on which the aggregation will be applied.
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> max(String field) {
+	public SingleOutputStreamOperator<T> max(String field) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MAX, false, input.getExecutionConfig()));
 	}
 
@@ -613,7 +612,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 *            The position to maximize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(int positionToMaxBy) {
+	public SingleOutputStreamOperator<T> maxBy(int positionToMaxBy) {
 		return this.maxBy(positionToMaxBy, true);
 	}
 
@@ -626,7 +625,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 *            The position to maximize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(String positionToMaxBy) {
+	public SingleOutputStreamOperator<T> maxBy(String positionToMaxBy) {
 		return this.maxBy(positionToMaxBy, true);
 	}
 
@@ -640,7 +639,7 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param first If true, then the operator return the first element with the maximum value, otherwise returns the last
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(int positionToMaxBy, boolean first) {
+	public SingleOutputStreamOperator<T> maxBy(int positionToMaxBy, boolean first) {
 		return aggregate(new ComparableAggregator<>(positionToMaxBy, input.getType(), AggregationFunction.AggregationType.MAXBY, first, input.getExecutionConfig()));
 	}
 
@@ -655,11 +654,11 @@ public class WindowedStream<T, K, W extends Window> {
 	 * @param first If True then in case of field equality the first object will be returned
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(String field, boolean first) {
+	public SingleOutputStreamOperator<T> maxBy(String field, boolean first) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MAXBY, first, input.getExecutionConfig()));
 	}
 
-	private SingleOutputStreamOperator<T, ?> aggregate(AggregationFunction<T> aggregator) {
+	private SingleOutputStreamOperator<T> aggregate(AggregationFunction<T> aggregator) {
 		return reduce(aggregator);
 	}
 
@@ -667,7 +666,7 @@ public class WindowedStream<T, K, W extends Window> {
 	//  Utilities
 	// ------------------------------------------------------------------------
 
-	private <R> SingleOutputStreamOperator<R, ?> createFastTimeOperatorIfValid(
+	private <R> SingleOutputStreamOperator<R> createFastTimeOperatorIfValid(
 			Function function,
 			TypeInformation<R> resultType,
 			String functionName) {
@@ -694,7 +693,7 @@ public class WindowedStream<T, K, W extends Window> {
 			}
 			else if (function instanceof WindowFunction) {
 				@SuppressWarnings("unchecked")
-				WindowFunction<Iterable<T>, R, K, TimeWindow> wf = (WindowFunction<Iterable<T>, R, K, TimeWindow>) function;
+				WindowFunction<T, R, K, TimeWindow> wf = (WindowFunction<T, R, K, TimeWindow>) function;
 
 				OneInputStreamOperator<T, R> op = new AccumulatingProcessingTimeWindowOperator<>(
 						wf, input.getKeySelector(),
@@ -726,7 +725,7 @@ public class WindowedStream<T, K, W extends Window> {
 			}
 			else if (function instanceof WindowFunction) {
 				@SuppressWarnings("unchecked")
-				WindowFunction<Iterable<T>, R, K, TimeWindow> wf = (WindowFunction<Iterable<T>, R, K, TimeWindow>) function;
+				WindowFunction<T, R, K, TimeWindow> wf = (WindowFunction<T, R, K, TimeWindow>) function;
 
 				OneInputStreamOperator<T, R> op = new AccumulatingProcessingTimeWindowOperator<>(
 						wf, input.getKeySelector(),

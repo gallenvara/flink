@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.util.StreamingMultipleProgramsTestBase;
 
@@ -74,18 +74,17 @@ public class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
 				ctx.collect(Tuple2.of("a", 7));
 				ctx.collect(Tuple2.of("a", 8));
 
-				// so that we get a high final watermark to process the previously sent elements
-				ctx.collect(Tuple2.of("a", 20));
+				// source is finite, so it will have an implicit MAX watermark when it finishes
 			}
 
 			@Override
-			public void cancel() {
-			}
+			public void cancel() {}
+			
 		}).assignTimestampsAndWatermarks(new Tuple2TimestampExtractor());
 
 		source1
 				.keyBy(0)
-				.window(TumblingTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+				.window(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
 				.fold(Tuple2.of("R:", 0), new FoldFunction<Tuple2<String, Integer>, Tuple2<String, Integer>>() {
 					@Override
 					public Tuple2<String, Integer> fold(Tuple2<String, Integer> accumulator,
@@ -139,8 +138,7 @@ public class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
 				ctx.collect(Tuple2.of("b", 5));
 				ctx.collect(Tuple2.of("a", 5));
 
-				// so that we get a high final watermark to process the previously sent elements
-				ctx.collect(Tuple2.of("a", 20));
+				// source is finite, so it will have an implicit MAX watermark when it finishes
 			}
 
 			@Override
@@ -149,7 +147,7 @@ public class WindowFoldITCase extends StreamingMultipleProgramsTestBase {
 		}).assignTimestampsAndWatermarks(new Tuple2TimestampExtractor());
 
 		source1
-				.windowAll(TumblingTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
+				.windowAll(TumblingEventTimeWindows.of(Time.of(3, TimeUnit.MILLISECONDS)))
 				.fold(Tuple2.of("R:", 0), new FoldFunction<Tuple2<String, Integer>, Tuple2<String, Integer>>() {
 					@Override
 					public Tuple2<String, Integer> fold(Tuple2<String, Integer> accumulator,

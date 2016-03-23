@@ -18,7 +18,8 @@
 
 package org.apache.flink.streaming.api.scala
 
-import org.apache.flink.annotation.{PublicEvolving, Public}
+import org.apache.flink.annotation.{Internal, PublicEvolving, Public}
+import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.functions.{FilterFunction, FlatMapFunction, MapFunction, Partitioner}
 import org.apache.flink.api.common.io.OutputFormat
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -31,6 +32,7 @@ import org.apache.flink.streaming.api.collector.selector.OutputSelector
 import org.apache.flink.streaming.api.datastream.{AllWindowedStream => JavaAllWindowedStream, DataStream => JavaStream, KeyedStream => JavaKeyedStream, _}
 import org.apache.flink.streaming.api.functions.sink.SinkFunction
 import org.apache.flink.streaming.api.functions.{AssignerWithPunctuatedWatermarks, AssignerWithPeriodicWatermarks, AscendingTimestampExtractor, TimestampExtractor}
+import org.apache.flink.streaming.api.operators.OneInputStreamOperator
 import org.apache.flink.streaming.api.windowing.assigners._
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.{GlobalWindow, TimeWindow, Window}
@@ -43,54 +45,92 @@ import scala.collection.JavaConverters._
 class DataStream[T](stream: JavaStream[T]) {
 
   /**
-   * Gets the underlying java DataStream object.
-   */
-  def javaStream: JavaStream[T] = stream
-
-  /**
    * Returns the [[StreamExecutionEnvironment]] associated with the current [[DataStream]].
    *
-   * @return associated execution environment
+   * @return associated execution environment 
+   * @deprecated Use [[executionEnvironment]] instead
    */
+  @deprecated
+  @PublicEvolving
   def getExecutionEnvironment: StreamExecutionEnvironment =
     new StreamExecutionEnvironment(stream.getExecutionEnvironment)
 
   /**
-   * Returns the ID of the DataStream.
-   *
-   * @return ID of the DataStream
+   * Returns the TypeInformation for the elements of this DataStream.
+   * 
+   * @deprecated Use [[dataType]] instead.
    */
+  @deprecated
   @PublicEvolving
-  def getId = stream.getId
+  def getType(): TypeInformation[T] = stream.getType()
 
+  /**
+   * Returns the parallelism of this operation.
+   * 
+   * @deprecated Use [[parallelism]] instead.
+   */
+  @deprecated
+  @PublicEvolving
+  def getParallelism = stream.getParallelism
+
+  /**
+   * Returns the execution config.
+   * 
+   * @deprecated Use [[executionConfig]] instead.
+   */
+  @deprecated
+  @PublicEvolving
+  def getExecutionConfig = stream.getExecutionConfig
+
+  /**
+   * Returns the ID of the DataStream.
+   */
+  @Internal
+  private[flink] def getId = stream.getId()
+  
+  // --------------------------------------------------------------------------
+  //  Scalaesk accessors 
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Gets the underlying java DataStream object.
+   */
+  def javaStream: JavaStream[T] = stream
+  
   /**
    * Returns the TypeInformation for the elements of this DataStream.
    */
-  def getType(): TypeInformation[T] = stream.getType()
+  def dataType: TypeInformation[T] = stream.getType()
+
+  /**
+   * Returns the execution config.
+   */
+  def executionConfig: ExecutionConfig = stream.getExecutionConfig()
+
+  /**
+   * Returns the [[StreamExecutionEnvironment]] associated with this data stream
+   */
+  def executionEnvironment: StreamExecutionEnvironment =
+    new StreamExecutionEnvironment(stream.getExecutionEnvironment())
+  
+  
+  /**
+   * Returns the parallelism of this operation.
+   */
+  def parallelism: Int = stream.getParallelism()
 
   /**
    * Sets the parallelism of this operation. This must be at least 1.
    */
   def setParallelism(parallelism: Int): DataStream[T] = {
     stream match {
-      case ds: SingleOutputStreamOperator[_, _] => ds.setParallelism(parallelism)
+      case ds: SingleOutputStreamOperator[T] => ds.setParallelism(parallelism)
       case _ =>
-        throw new UnsupportedOperationException("Operator " + stream.toString +  " cannot " +
-          "have " +
-          "parallelism.")
+        throw new UnsupportedOperationException(
+          "Operator " + stream + " cannot set the parallelism.")
     }
     this
   }
-
-  /**
-   * Returns the parallelism of this operation.
-   */
-  def getParallelism = stream.getParallelism
-
-  /**
-   * Returns the execution config.
-   */
-  def getExecutionConfig = stream.getExecutionConfig
 
   /**
    * Gets the name of the current data stream. This name is
@@ -98,11 +138,24 @@ class DataStream[T](stream: JavaStream[T]) {
    *
    * @return Name of the stream.
    */
-  def getName : String = stream match {
-    case stream : SingleOutputStreamOperator[T,_] => stream.getName
+  def name: String = stream match {
+    case stream : SingleOutputStreamOperator[T] => stream.getName
     case _ => throw new
         UnsupportedOperationException("Only supported for operators.")
   }
+  
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Gets the name of the current data stream. This name is
+   * used by the visualization and logging during runtime.
+   *
+   * @return Name of the stream.
+   * @deprecated Use [[name]] instead
+   */
+  @deprecated
+  @PublicEvolving
+  def getName : String = name
 
   /**
    * Sets the name of the current data stream. This name is
@@ -111,7 +164,7 @@ class DataStream[T](stream: JavaStream[T]) {
    * @return The named operator
    */
   def name(name: String) : DataStream[T] = stream match {
-    case stream : SingleOutputStreamOperator[T,_] => asScalaStream(stream.name(name))
+    case stream : SingleOutputStreamOperator[T] => asScalaStream(stream.name(name))
     case _ => throw new UnsupportedOperationException("Only supported for operators.")
     this
   }
@@ -130,7 +183,7 @@ class DataStream[T](stream: JavaStream[T]) {
     */
   @PublicEvolving
   def uid(uid: String) : DataStream[T] = javaStream match {
-    case stream : SingleOutputStreamOperator[T,_] => asScalaStream(stream.uid(uid))
+    case stream : SingleOutputStreamOperator[T] => asScalaStream(stream.uid(uid))
     case _ => throw new UnsupportedOperationException("Only supported for operators.")
     this
   }
@@ -145,7 +198,7 @@ class DataStream[T](stream: JavaStream[T]) {
   @PublicEvolving
   def disableChaining(): DataStream[T] = {
     stream match {
-      case ds: SingleOutputStreamOperator[_, _] => ds.disableChaining()
+      case ds: SingleOutputStreamOperator[T] => ds.disableChaining()
       case _ =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
@@ -161,7 +214,7 @@ class DataStream[T](stream: JavaStream[T]) {
   @PublicEvolving
   def startNewChain(): DataStream[T] = {
     stream match {
-      case ds: SingleOutputStreamOperator[_, _] => ds.startNewChain()
+      case ds: SingleOutputStreamOperator[T] => ds.startNewChain()
       case _ =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
@@ -184,8 +237,7 @@ class DataStream[T](stream: JavaStream[T]) {
   @PublicEvolving
   def slotSharingGroup(slotSharingGroup: String): DataStream[T] = {
     stream match {
-      case ds: SingleOutputStreamOperator[_, _] => ds.slotSharingGroup(slotSharingGroup)
-      case sink: DataStreamSink[_] => sink.slotSharingGroup(slotSharingGroup)
+      case ds: SingleOutputStreamOperator[T] => ds.slotSharingGroup(slotSharingGroup)
       case _ =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
@@ -202,13 +254,17 @@ class DataStream[T](stream: JavaStream[T]) {
    */
   def setBufferTimeout(timeoutMillis: Long): DataStream[T] = {
     stream match {
-      case ds: SingleOutputStreamOperator[_, _] => ds.setBufferTimeout(timeoutMillis)
+      case ds: SingleOutputStreamOperator[T] => ds.setBufferTimeout(timeoutMillis)
       case _ =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
     this
   }
 
+  // --------------------------------------------------------------------------
+  //  Stream Transformations 
+  // --------------------------------------------------------------------------
+  
   /**
    * Creates a new DataStream by merging DataStream outputs of
    * the same type with each other. The DataStreams merged using this operator
@@ -514,7 +570,7 @@ class DataStream[T](stream: JavaStream[T]) {
   /**
    * Windows this DataStream into tumbling time windows.
    *
-   * This is a shortcut for either `.window(TumblingTimeWindows.of(size))` or
+   * This is a shortcut for either `.window(TumblingEventTimeWindows.of(size))` or
    * `.window(TumblingProcessingTimeWindows.of(size))` depending on the time characteristic
    * set using
    * [[StreamExecutionEnvironment.setStreamTimeCharacteristic]].
@@ -532,7 +588,7 @@ class DataStream[T](stream: JavaStream[T]) {
   /**
    * Windows this DataStream into sliding time windows.
    *
-   * This is a shortcut for either `.window(SlidingTimeWindows.of(size, slide))` or
+   * This is a shortcut for either `.window(SlidingEventTimeWindows.of(size, slide))` or
    * `.window(SlidingProcessingTimeWindows.of(size, slide))` depending on the time characteristic
    * set using
    * [[StreamExecutionEnvironment.setStreamTimeCharacteristic]].
@@ -722,16 +778,16 @@ class DataStream[T](stream: JavaStream[T]) {
    * Creates a co-group operation. See [[CoGroupedStreams]] for an example of how the keys
    * and window can be specified.
    */
-  def coGroup[T2](otherStream: DataStream[T2]): CoGroupedStreams.Unspecified[T, T2] = {
-    CoGroupedStreams.createCoGroup(this, otherStream)
+  def coGroup[T2](otherStream: DataStream[T2]): CoGroupedStreams[T, T2] = {
+    new CoGroupedStreams(this, otherStream)
   }
 
   /**
    * Creates a join operation. See [[JoinedStreams]] for an example of how the keys
    * and window can be specified.
    */
-  def join[T2](otherStream: DataStream[T2]): JoinedStreams.Unspecified[T, T2] = {
-    JoinedStreams.createJoin(this, otherStream)
+  def join[T2](otherStream: DataStream[T2]): JoinedStreams[T, T2] = {
+    new JoinedStreams(this, otherStream)
   }
 
   /**
@@ -897,4 +953,17 @@ class DataStream[T](stream: JavaStream[T]) {
     new StreamExecutionEnvironment(stream.getExecutionEnvironment).scalaClean(f)
   }
 
+  /**
+    * Transforms the [[DataStream]] by using a custom [[OneInputStreamOperator]].
+    *
+    * @param operatorName name of the operator, for logging purposes
+    * @param operator the object containing the transformation logic
+    * @tparam R the type of elements emitted by the operator
+    */
+  @PublicEvolving
+  def transform[R: TypeInformation](
+      operatorName: String,
+      operator: OneInputStreamOperator[T, R]): DataStream[R] = {
+    asScalaStream(stream.transform(operatorName, implicitly[TypeInformation[R]], operator))
+  }
 }

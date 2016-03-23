@@ -26,7 +26,6 @@ import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.functions.RichFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.Utils;
-import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction;
@@ -44,8 +43,9 @@ import org.apache.flink.streaming.api.windowing.triggers.Trigger;
 import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.streaming.runtime.operators.windowing.EvictingNonKeyedWindowOperator;
 import org.apache.flink.streaming.runtime.operators.windowing.NonKeyedWindowOperator;
-import org.apache.flink.streaming.runtime.operators.windowing.buffers.HeapWindowBuffer;
-import org.apache.flink.streaming.runtime.operators.windowing.buffers.PreAggregatingHeapWindowBuffer;
+import org.apache.flink.streaming.runtime.operators.windowing.buffers.FoldingWindowBuffer;
+import org.apache.flink.streaming.runtime.operators.windowing.buffers.ListWindowBuffer;
+import org.apache.flink.streaming.runtime.operators.windowing.buffers.ReducingWindowBuffer;
 
 /**
  * A {@code AllWindowedStream} represents a data stream where the stream of
@@ -134,7 +134,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param function The reduce function.
 	 * @return The data stream that is the result of applying the reduce function to the window. 
 	 */
-	public SingleOutputStreamOperator<T, ?> reduce(ReduceFunction<T> function) {
+	public SingleOutputStreamOperator<T> reduce(ReduceFunction<T> function) {
 		if (function instanceof RichFunction) {
 			throw new UnsupportedOperationException("ReduceFunction of reduce can not be a RichFunction. " +
 				"Please use apply(ReduceFunction, WindowFunction) instead.");
@@ -146,7 +146,7 @@ public class AllWindowedStream<T, W extends Window> {
 		String callLocation = Utils.getCallLocationName();
 		String udfName = "AllWindowedStream." + callLocation;
 
-		SingleOutputStreamOperator<T, ?> result = createFastTimeOperatorIfValid(function, input.getType(), udfName);
+		SingleOutputStreamOperator<T> result = createFastTimeOperatorIfValid(function, input.getType(), udfName);
 		if (result != null) {
 			return result;
 		}
@@ -158,7 +158,7 @@ public class AllWindowedStream<T, W extends Window> {
 		if (evictor != null) {
 			operator = new EvictingNonKeyedWindowOperator<>(windowAssigner,
 					windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-					new HeapWindowBuffer.Factory<T>(),
+					new ListWindowBuffer.Factory<>(getInputType().createSerializer(getExecutionEnvironment().getConfig())),
 					new ReduceIterableAllWindowFunction<W, T>(function),
 					trigger,
 					evictor);
@@ -166,7 +166,7 @@ public class AllWindowedStream<T, W extends Window> {
 		} else {
 			operator = new NonKeyedWindowOperator<>(windowAssigner,
 					windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-					new PreAggregatingHeapWindowBuffer.Factory<>(function),
+					new ReducingWindowBuffer.Factory<>(function, getInputType().createSerializer(getExecutionEnvironment().getConfig())),
 					new ReduceIterableAllWindowFunction<W, T>(function),
 					trigger);
 		}
@@ -182,7 +182,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param function The fold function.
 	 * @return The data stream that is the result of applying the fold function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> fold(R initialValue, FoldFunction<T, R> function) {
+	public <R> SingleOutputStreamOperator<R> fold(R initialValue, FoldFunction<T, R> function) {
 		if (function instanceof RichFunction) {
 			throw new UnsupportedOperationException("FoldFunction can not be a RichFunction. " +
 				"Please use apply(FoldFunction, WindowFunction) instead.");
@@ -202,7 +202,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param function The fold function.
 	 * @return The data stream that is the result of applying the fold function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> fold(R initialValue, FoldFunction<T, R> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> fold(R initialValue, FoldFunction<T, R> function, TypeInformation<R> resultType) {
 		if (function instanceof RichFunction) {
 			throw new UnsupportedOperationException("FoldFunction can not be a RichFunction. " +
 				"Please use apply(FoldFunction, WindowFunction) instead.");
@@ -222,11 +222,10 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param function The window function.
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(AllWindowFunction<Iterable<T>, R, W> function) {
+	public <R> SingleOutputStreamOperator<R> apply(AllWindowFunction<T, R, W> function) {
 		@SuppressWarnings("unchecked, rawtypes")
-		TypeInformation<Iterable<T>> iterTypeInfo = new GenericTypeInfo<>((Class) Iterable.class);
 		TypeInformation<R> resultType = TypeExtractor.getUnaryOperatorReturnType(
-				function, AllWindowFunction.class, true, true, iterTypeInfo, null, false);
+				function, AllWindowFunction.class, true, true, getInputType(), null, false);
 
 		return apply(function, resultType);
 	}
@@ -242,14 +241,14 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param function The window function.
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(AllWindowFunction<Iterable<T>, R, W> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> apply(AllWindowFunction<T, R, W> function, TypeInformation<R> resultType) {
 		//clean the closure
 		function = input.getExecutionEnvironment().clean(function);
 
 		String callLocation = Utils.getCallLocationName();
 		String udfName = "AllWindowedStream." + callLocation;
 
-		SingleOutputStreamOperator<R, ?> result = createFastTimeOperatorIfValid(function, resultType, udfName);
+		SingleOutputStreamOperator<R> result = createFastTimeOperatorIfValid(function, resultType, udfName);
 		if (result != null) {
 			return result;
 		}
@@ -257,12 +256,12 @@ public class AllWindowedStream<T, W extends Window> {
 
 		String opName = "TriggerWindow(" + windowAssigner + ", " + trigger + ", " + udfName + ")";
 
-		NonKeyedWindowOperator<T, R, W> operator;
+		NonKeyedWindowOperator<T, T, R, W> operator;
 
 		if (evictor != null) {
 			operator = new EvictingNonKeyedWindowOperator<>(windowAssigner,
 					windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-					new HeapWindowBuffer.Factory<T>(),
+					new ListWindowBuffer.Factory<>(getInputType().createSerializer(getExecutionEnvironment().getConfig())),
 					function,
 					trigger,
 					evictor);
@@ -270,7 +269,7 @@ public class AllWindowedStream<T, W extends Window> {
 		} else {
 			operator = new NonKeyedWindowOperator<>(windowAssigner,
 					windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-					new HeapWindowBuffer.Factory<T>(),
+					new ListWindowBuffer.Factory<>(getInputType().createSerializer(getExecutionEnvironment().getConfig())),
 					function,
 					trigger);
 		}
@@ -291,7 +290,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
 
-	public <R> SingleOutputStreamOperator<R, ?> apply(ReduceFunction<T> preAggregator, AllWindowFunction<T, R, W> function) {
+	public <R> SingleOutputStreamOperator<R> apply(ReduceFunction<T> preAggregator, AllWindowFunction<T, R, W> function) {
 		TypeInformation<T> inType = input.getType();
 		TypeInformation<R> resultType = TypeExtractor.getUnaryOperatorReturnType(
 				function, AllWindowFunction.class, true, true, inType, null, false);
@@ -312,7 +311,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param resultType Type information for the result type of the window function
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(ReduceFunction<T> preAggregator, AllWindowFunction<T, R, W> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> apply(ReduceFunction<T> preAggregator, AllWindowFunction<T, R, W> function, TypeInformation<R> resultType) {
 		if (preAggregator instanceof RichFunction) {
 			throw new UnsupportedOperationException("Pre-aggregator of apply can not be a RichFunction.");
 		}
@@ -331,7 +330,7 @@ public class AllWindowedStream<T, W extends Window> {
 		if (evictor != null) {
 			operator = new EvictingNonKeyedWindowOperator<>(windowAssigner,
 					windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-					new HeapWindowBuffer.Factory<T>(),
+					new ListWindowBuffer.Factory<>(getInputType().createSerializer(getExecutionEnvironment().getConfig())),
 					new ReduceApplyAllWindowFunction<>(preAggregator, function),
 					trigger,
 					evictor);
@@ -339,8 +338,8 @@ public class AllWindowedStream<T, W extends Window> {
 		} else {
 			operator = new NonKeyedWindowOperator<>(windowAssigner,
 				windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-				new PreAggregatingHeapWindowBuffer.Factory<>(preAggregator),
-				new ReduceApplyAllWindowFunction<>(preAggregator, function),
+				new ReducingWindowBuffer.Factory<>(preAggregator, getInputType().createSerializer(getExecutionEnvironment().getConfig())),
+				function,
 				trigger);
 		}
 
@@ -360,7 +359,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param function The window function.
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(R initialValue, FoldFunction<T, R> foldFunction, AllWindowFunction<R, R, W> function) {
+	public <R> SingleOutputStreamOperator<R> apply(R initialValue, FoldFunction<T, R> foldFunction, AllWindowFunction<R, R, W> function) {
 		TypeInformation<R> resultType = TypeExtractor.getFoldReturnTypes(foldFunction, input.getType(),
 			Utils.getCallLocationName(), true);
 
@@ -381,7 +380,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param resultType Type information for the result type of the window function
 	 * @return The data stream that is the result of applying the window function to the window.
 	 */
-	public <R> SingleOutputStreamOperator<R, ?> apply(R initialValue, FoldFunction<T, R> foldFunction, AllWindowFunction<R, R, W> function, TypeInformation<R> resultType) {
+	public <R> SingleOutputStreamOperator<R> apply(R initialValue, FoldFunction<T, R> foldFunction, AllWindowFunction<R, R, W> function, TypeInformation<R> resultType) {
 		if (foldFunction instanceof RichFunction) {
 			throw new UnsupportedOperationException("ReduceFunction of apply can not be a RichFunction.");
 		}
@@ -402,7 +401,7 @@ public class AllWindowedStream<T, W extends Window> {
 
 			operator = new EvictingNonKeyedWindowOperator<>(windowAssigner,
 				windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-				new HeapWindowBuffer.Factory<T>(),
+				new ListWindowBuffer.Factory<>(getInputType().createSerializer(getExecutionEnvironment().getConfig())),
 				new FoldApplyAllWindowFunction<>(initialValue, foldFunction, function),
 				trigger,
 				evictor);
@@ -412,8 +411,8 @@ public class AllWindowedStream<T, W extends Window> {
 
 			operator = new NonKeyedWindowOperator<>(windowAssigner,
 				windowAssigner.getWindowSerializer(getExecutionEnvironment().getConfig()),
-				new HeapWindowBuffer.Factory<T>(),
-				new FoldApplyAllWindowFunction<>(initialValue, foldFunction, function),
+				new FoldingWindowBuffer.Factory<>(foldFunction, initialValue, resultType.createSerializer(getExecutionEnvironment().getConfig())),
+				function,
 				trigger);
 		}
 
@@ -431,7 +430,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param positionToSum The position in the tuple/array to sum
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> sum(int positionToSum) {
+	public SingleOutputStreamOperator<T> sum(int positionToSum) {
 		return aggregate(new SumAggregator<>(positionToSum, input.getType(), input.getExecutionConfig()));
 	}
 
@@ -448,7 +447,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param field The field to sum
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> sum(String field) {
+	public SingleOutputStreamOperator<T> sum(String field) {
 		return aggregate(new SumAggregator<>(field, input.getType(), input.getExecutionConfig()));
 	}
 
@@ -459,7 +458,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param positionToMin The position to minimize
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> min(int positionToMin) {
+	public SingleOutputStreamOperator<T> min(int positionToMin) {
 		return aggregate(new ComparableAggregator<>(positionToMin, input.getType(), AggregationFunction.AggregationType.MIN, input.getExecutionConfig()));
 	}
 
@@ -476,7 +475,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param field The field expression based on which the aggregation will be applied.
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> min(String field) {
+	public SingleOutputStreamOperator<T> min(String field) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MIN, false, input.getExecutionConfig()));
 	}
 
@@ -489,7 +488,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 *            The position to minimize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(int positionToMinBy) {
+	public SingleOutputStreamOperator<T> minBy(int positionToMinBy) {
 		return this.minBy(positionToMinBy, true);
 	}
 
@@ -501,7 +500,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param positionToMinBy The position to minimize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(String positionToMinBy) {
+	public SingleOutputStreamOperator<T> minBy(String positionToMinBy) {
 		return this.minBy(positionToMinBy, true);
 	}
 
@@ -515,7 +514,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param first If true, then the operator return the first element with the minimum value, otherwise returns the last
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(int positionToMinBy, boolean first) {
+	public SingleOutputStreamOperator<T> minBy(int positionToMinBy, boolean first) {
 		return aggregate(new ComparableAggregator<>(positionToMinBy, input.getType(), AggregationFunction.AggregationType.MINBY, first, input.getExecutionConfig()));
 	}
 
@@ -530,7 +529,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param first If True then in case of field equality the first object will be returned
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> minBy(String field, boolean first) {
+	public SingleOutputStreamOperator<T> minBy(String field, boolean first) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MINBY, first, input.getExecutionConfig()));
 	}
 
@@ -541,7 +540,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param positionToMax The position to maximize
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> max(int positionToMax) {
+	public SingleOutputStreamOperator<T> max(int positionToMax) {
 		return aggregate(new ComparableAggregator<>(positionToMax, input.getType(), AggregationFunction.AggregationType.MAX, input.getExecutionConfig()));
 	}
 
@@ -555,7 +554,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param field The field expression based on which the aggregation will be applied.
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> max(String field) {
+	public SingleOutputStreamOperator<T> max(String field) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MAX, false, input.getExecutionConfig()));
 	}
 
@@ -568,7 +567,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 *            The position to maximize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(int positionToMaxBy) {
+	public SingleOutputStreamOperator<T> maxBy(int positionToMaxBy) {
 		return this.maxBy(positionToMaxBy, true);
 	}
 
@@ -581,7 +580,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 *            The position to maximize by
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(String positionToMaxBy) {
+	public SingleOutputStreamOperator<T> maxBy(String positionToMaxBy) {
 		return this.maxBy(positionToMaxBy, true);
 	}
 
@@ -595,7 +594,7 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param first If true, then the operator return the first element with the maximum value, otherwise returns the last
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(int positionToMaxBy, boolean first) {
+	public SingleOutputStreamOperator<T> maxBy(int positionToMaxBy, boolean first) {
 		return aggregate(new ComparableAggregator<>(positionToMaxBy, input.getType(), AggregationFunction.AggregationType.MAXBY, first, input.getExecutionConfig()));
 	}
 
@@ -610,11 +609,11 @@ public class AllWindowedStream<T, W extends Window> {
 	 * @param first If True then in case of field equality the first object will be returned
 	 * @return The transformed DataStream.
 	 */
-	public SingleOutputStreamOperator<T, ?> maxBy(String field, boolean first) {
+	public SingleOutputStreamOperator<T> maxBy(String field, boolean first) {
 		return aggregate(new ComparableAggregator<>(field, input.getType(), AggregationFunction.AggregationType.MAXBY, first, input.getExecutionConfig()));
 	}
 
-	private SingleOutputStreamOperator<T, ?> aggregate(AggregationFunction<T> aggregator) {
+	private SingleOutputStreamOperator<T> aggregate(AggregationFunction<T> aggregator) {
 		return reduce(aggregator);
 	}
 
@@ -623,7 +622,7 @@ public class AllWindowedStream<T, W extends Window> {
 	// ------------------------------------------------------------------------
 
 
-	private <R> SingleOutputStreamOperator<R, ?> createFastTimeOperatorIfValid(
+	private <R> SingleOutputStreamOperator<R> createFastTimeOperatorIfValid(
 			Function function,
 			TypeInformation<R> resultType,
 			String functionName) {
