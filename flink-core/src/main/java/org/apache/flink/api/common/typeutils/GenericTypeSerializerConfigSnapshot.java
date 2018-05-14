@@ -31,14 +31,14 @@ import java.io.IOException;
  * @param <T> The type to be instantiated.
  */
 @Internal
-public abstract class GenericTypeSerializerConfigSnapshot<T> extends TypeSerializerConfigSnapshot {
+		public abstract class GenericTypeSerializerConfigSnapshot<T> extends TypeSerializerConfigSnapshot {
 
-	private Class<T> typeClass;
+			private Class<T> typeClass;
 
-	/** This empty nullary constructor is required for deserializing the configuration. */
-	public GenericTypeSerializerConfigSnapshot() {}
+			/** This empty nullary constructor is required for deserializing the configuration. */
+			public GenericTypeSerializerConfigSnapshot() {}
 
-	public GenericTypeSerializerConfigSnapshot(Class<T> typeClass) {
+			public GenericTypeSerializerConfigSnapshot(Class<T> typeClass) {
 		this.typeClass = Preconditions.checkNotNull(typeClass);
 	}
 

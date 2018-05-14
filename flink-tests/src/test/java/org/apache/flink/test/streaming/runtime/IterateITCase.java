@@ -81,9 +81,7 @@ public class IterateITCase extends AbstractTestBase {
 
 		DataStream<Integer> source = env.fromElements(1, 10);
 
-		IterativeStream<Integer> iter1 = source.iterate();
-		SingleOutputStreamOperator<Integer> map1 = iter1.map(noOpIntMap);
-		iter1.closeWith(map1).print();
+		SingleOutputStreamOperator<Integer> map1 = source.map(noOpIntMap);
 	}
 
 	@Test
